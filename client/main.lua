@@ -329,7 +329,7 @@ local function mainThread()
             local currentDistance = #(playerCoords - Config.vehicleShops[i].shopCoords)
             if currentDistance > 100 then
                 if shopPoint[i] then
-                    shopPoint[i]:delete()
+                    shopPoint[i]:remove()
                 end
             end
 
