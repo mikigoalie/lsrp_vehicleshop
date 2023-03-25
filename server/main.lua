@@ -73,7 +73,7 @@ lib.callback.register('lsrp_vehicleShop:server:addVehicle', function(source, veh
         _vehProps.plate = getPlate()
     end
 
-    local success = MySQL.insert.await('INSERT INTO owned_vehicles (owner, plate, vehicle, stored, type, vip) VALUES (?, ?, ?, ?, ?, ?)', {xPlayer.identifier, _vehProps.plate, json.encode(_vehProps), vehicleSpot ~= 0, 'car', false})
+    local success = MySQL.insert.await('INSERT INTO owned_vehicles (owner, plate, vehicle, stored, type) VALUES (?, ?, ?, ?, ?)', {xPlayer.identifier, _vehProps.plate, json.encode(_vehProps), vehicleSpot ~= 0, 'car'})
     print(('DSUICCCESS? %s'):format(success))
     if vehicleSpot == 0 then
         ESX.OneSync.SpawnVehicle(data.vehicleModel, Config.vehicleShops[_shopIndex].vehicleSpawnCoords.xyz, Config.vehicleShops[_shopIndex].vehicleSpawnCoords.w, _vehProps, function(NetworkId)
