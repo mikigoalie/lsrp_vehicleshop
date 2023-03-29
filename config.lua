@@ -3,6 +3,7 @@ Config.currency = '$'
 Config.menuPosition = 'right'
 Config.textDistance = 1.0
 Config.notifDuration = 10000
+Config.usePEFCL = true
 Config.vehicleShops = {
     {
         shopLabel = 'Deluxe Motorsport', 

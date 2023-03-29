@@ -12,6 +12,22 @@
     "classics": "Veteráni",
     "supers": "Super sporty",
     "vans": "Dodávky",
-    "tip": "Po vybrání vozidla si jej lze ručně nastartovat nebo prohlédnout!"
+    "tip": "Po vybrání vozidla si jej lze ručně nastartovat nebo prohlédnout!",
+
+    "not_enough_money": "Nemáš dostatek hotovosti k úhradě. Vozidlo stojí %s ${currencySymbol}",
+    "transaction_error": "Transakce byla neúspěšná",
+    "error_while_saving": "Nastala chyba při ukládání vozidla",
+    "primary_color": "Primární barva",
+    "secondary_color": "Sekundární barva",
+    "confirm_purchase": "Opravdu si chceš koupit **%s** za %s ${currencySymbol}?",
+    "cancel": "Zrušit",
+    "confirm": "Potvrdit",
+    "pay_in_cash": "Zaplatit %s $ v hotovosti",
+    "pay_in_bank": "Zaplatit %s $ v kartou",
+    "cash": "Hotovost",
+    "bank": "kartou",
+    "vehicle_pick_up": "Váš vůz **%s** s SPZ: %s je připraven k převzetí v naší garáži",
+    "added_to_garage": "Vaše vozidlo **%s** s SPZ: %s Vám bylo převezeno do Vaši garáže",
+    "success_bought": "Úspěšně sis zakoupil vozidlo **%s** s SPZ: %s"
 
 }

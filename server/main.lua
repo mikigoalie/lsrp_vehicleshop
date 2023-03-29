@@ -66,6 +66,7 @@ lib.callback.register('lsrp_vehicleShop:server:addVehicle', function(source, veh
     if _vehProps.model ~= data.vehicleModel then
         return false
     end
+    print(vehicleSpot)
 
     local alreadyExists = MySQL.single.await('SELECT owner FROM owned_vehicles WHERE plate = ?', {vehProperties.plate})
     print(('DB EXIST? %s'):format(alreadyExists))
@@ -91,17 +92,6 @@ lib.callback.register('lsrp_vehicleShop:server:addVehicle', function(source, veh
     return success, _vehProps.plate, vehicleSpot ~= 0
 end)
 
-
-RegisterCommand("dbtest", function(source, args, rawCommand)
-    local success = MySQL.insert.await('INSERT INTO carthief (identifier, timeleft) VALUES (?, ?)', {'NEGER', 50})
-    print(success)
-end)
-
-
-
-
 AddEventHandler('onResourceStop', function(resourceName)
-    if GetCurrentResourceName() ~= resourceName then
-        return
-    end
+    if GetCurrentResourceName() ~= resourceName then return end
 end)

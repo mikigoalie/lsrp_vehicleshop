@@ -82,7 +82,7 @@ local function proceedPayment(useBank, _shopIndex, _selected, _secondary)
     if not useBank then
         local count = _inv:Search('count', 'money')
         if count < Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_secondary].vehiclePrice then
-            notification(Config.vehicleShops[_shopIndex]?.shopLabel, ('Nemáš dostatek hotovosti. Vozidlo stojí %s %s'):format('200', '$'), 'error')
+            notification(Config.vehicleShops[_shopIndex]?.shopLabel, locale('not_enough_money', Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_secondary].vehiclePrice), 'error')
             lib.showMenu('vehicleshop')
             return
         end
@@ -90,7 +90,7 @@ local function proceedPayment(useBank, _shopIndex, _selected, _secondary)
 
 	local success = lib.callback.await('lsrp_vehicleShop:server:payment', false, useBank, _shopIndex, _selected, _secondary)
     if not success then
-        notification(Config.vehicleShops[_shopIndex]?.shopLabel or '[_ERROR_]', 'Transakce byla neúspěšná', 'error')
+        notification(Config.vehicleShops[_shopIndex]?.shopLabel or '[_ERROR_]', locale('transaction_error'), 'error')
         lib.showMenu('vehicleshop')
         return
     end
@@ -107,17 +107,17 @@ local function proceedPayment(useBank, _shopIndex, _selected, _secondary)
                 _deleteVehicle(vehiclePreview)
             end
 			PlaySoundFrontend(-1, 'Pre_Screen_Stinger', 'DLC_HEISTS_FAILED_SCREEN_SOUNDS', 0)
-            notification(Config.vehicleShops[_shopIndex]?.shopLabel, ('Úspěšně sis zakoupil vozidlo %s s SPZ: %s'):format(Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_secondary].label, vehiclePlate), 'success')
+            notification(Config.vehicleShops[_shopIndex]?.shopLabel, locale('success_bought', Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_secondary].label, vehiclePlate), 'success')
 			ResetEntityAlpha(cache.ped)
 			Wait(1000)
             SetEntityCoords(cache.ped, lastCoords.xyz)
             SetEntityVisible(cache.ped, true)
 			DoScreenFadeIn(1000)
-            notification(Config.vehicleShops[_shopIndex]?.shopLabel or '[_ERROR_]', not spotTaken and ('Váš vůz %s s SPZ: %s je připraven k převzetí v naší garáži'):format(data.label, vehiclePlate) or ('Váš vůž %s s SPZ: %s je k dispozici ve Vaši garáži'):format(data.label, vehiclePlate), 'success')
+            notification(Config.vehicleShops[_shopIndex]?.shopLabel or '[_ERROR_]', not spotTaken and locale('vehicle_pick_up', data.label, vehiclePlate) or locale('added_to_garage', data.label, vehiclePlate), 'success')
 			return
 		end
 
-        notification(Config.vehicleShops[_shopIndex]?.shopLabel or '[_ERROR_]', 'Nastala chyba při ukládání vozidla', 'error')
+        notification(Config.vehicleShops[_shopIndex]?.shopLabel or '[_ERROR_]', locale('error_while_saving'), 'error')
 	end
 end
 
@@ -140,11 +140,11 @@ local function openVehicleSubmenu(_shopIndex, _selected, _scrollIndex)
 
 
     if Config.vehicleColors.primary == true then
-        options[#options+1] = {icon = 'droplet', label = 'Primární barva', values = Config.vehicleColors.data, menuArg = 'primary'}
+        options[#options+1] = {icon = 'droplet', label = locale('primary_color'), values = Config.vehicleColors.data, menuArg = 'primary'}
     end
     
     if Config.vehicleColors.secondary == true then
-        options[#options+1] = {icon = 'droplet', label = 'Sekundární barva', values = Config.vehicleColors.data, menuArg = 'secondary'}
+        options[#options+1] = {icon = 'droplet', label = locale('secondary_color'), values = Config.vehicleColors.data, menuArg = 'secondary'}
     end
 
     options[#options+1] = {
@@ -153,13 +153,13 @@ local function openVehicleSubmenu(_shopIndex, _selected, _scrollIndex)
         menuArg = 'payment',
         values = {
             {
-                label = 'Hotovost', 
-                description = ('Zaplatit %s $ v hotovosti'):format(Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_scrollIndex].vehiclePrice),
+                label = locale('cash'), 
+                description = locale('pay_in_cash', Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_scrollIndex].vehiclePrice),
                 method = 'cash'
             }, 
             {
-                label = 'Kartou', 
-                description = ('Zaplatit %s $ kartou'):format(Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_scrollIndex].vehiclePrice),
+                label = locale('bank'), 
+                description = locale('pay_in_bank', Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_scrollIndex].vehiclePrice),
                 method = 'bank'
             }
         },
@@ -221,10 +221,10 @@ local function openVehicleSubmenu(_shopIndex, _selected, _scrollIndex)
         if options[selected].menuArg == 'payment' then
             local alert = lib.alertDialog({
                 header = Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_scrollIndex].label,
-                content = ('Opravdu si chceš zakoupit *%s* za %s %s?'):format(Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_scrollIndex].label, groupDigs(Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_scrollIndex].vehiclePrice), Config.currency),
+                content = locale('confirm_purchase',Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_scrollIndex].label, groupDigs(Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_scrollIndex].vehiclePrice)),
                 centered = true,
                 cancel = true,
-                labels = {confirm = 'Zakoupit', cancel = 'Zrušit'}
+                labels = {confirm = locale('confirm'), cancel = locale('cancel')}
             })
             
             if alert ~= 'confirm' then
@@ -361,7 +361,7 @@ local function mainThread()
         EndTextCommandSetBlipName(blip)
     end
 
-	while playerLoaded do
+	while ESX.IsPlayerLoaded() do
 		local playerCoords = GetEntityCoords(cache.ped)
         for idx, shopData in pairs(Config.vehicleShops) do
             local currentDistance = #(playerCoords - shopData.shopCoords)
