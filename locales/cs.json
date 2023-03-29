@@ -28,6 +28,10 @@
     "bank": "kartou",
     "vehicle_pick_up": "Váš vůz **%s** s SPZ: %s je připraven k převzetí v naší garáži",
     "added_to_garage": "Vaše vozidlo **%s** s SPZ: %s Vám bylo převezeno do Vaši garáže",
-    "success_bought": "Úspěšně sis zakoupil vozidlo **%s** s SPZ: %s"
+    "success_bought": "Úspěšně sis zakoupil vozidlo **%s** s SPZ: %s",
+    "vehicle_info": "Informace o vozidle",
+    "est_speed": "Odhadovaná rychlost",
+    "seats": "Počet sedadel",
+    "plate": "SPZ"
 
 }

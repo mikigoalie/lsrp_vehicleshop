@@ -61,22 +61,7 @@ local function _spawnLocalVehicle(_shopIndex, _selected, _scrollIndex)
     FreezeEntityPosition(vehiclePreview, true)
 end
 
-AddEventHandler('onResourceStop', function(resourceName)
-    if (GetCurrentResourceName() ~= resourceName) then return end
 
-    for _, shopData in pairs(Config.vehicleShops) do
-        if DoesBlipExist(shopData.blipData.blip) then
-            RemoveBlip(shopData.blipData.blip)
-        end
-    end
-
-    if vehiclePreview then
-        SetEntityAsMissionEntity(vehiclePreview)
-        _deleteVehicle(vehiclePreview)
-        ResetEntityAlpha(cache.ped)
-		vehiclePreview = nil
-    end
-end)
 
 local function proceedPayment(useBank, _shopIndex, _selected, _secondary)
     if not useBank then
@@ -108,7 +93,6 @@ local function proceedPayment(useBank, _shopIndex, _selected, _secondary)
             end
 			PlaySoundFrontend(-1, 'Pre_Screen_Stinger', 'DLC_HEISTS_FAILED_SCREEN_SOUNDS', 0)
             notification(Config.vehicleShops[_shopIndex]?.shopLabel, locale('success_bought', Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_secondary].label, vehiclePlate), 'success')
-			ResetEntityAlpha(cache.ped)
 			Wait(1000)
             SetEntityCoords(cache.ped, lastCoords.xyz)
             SetEntityVisible(cache.ped, true)
@@ -121,30 +105,37 @@ local function proceedPayment(useBank, _shopIndex, _selected, _secondary)
 	end
 end
 
-local function getVehicleData(_shopIndex, selected, secondary)
-    local r, g, b = GetVehicleColor(vehiclePreview)
-    local data = {
-        plate = GetVehicleNumberPlateText(vehiclePreview),
-        vehicleSeats = GetVehicleModelNumberOfSeats(Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][selected].values[secondary].vehicleModel),
-        color = {r = r, g = g, b = b},
-        maxBraking = GetVehicleModelMaxBrakingMaxMods(Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][selected].values[secondary].vehicleModel),
-        topSpeed = GetVehicleEstimatedMaxSpeed(vehiclePreview)
-    }
-    return data.plate and data or false
-end
-
 local function openVehicleSubmenu(_shopIndex, _selected, _scrollIndex)
-    local options = {}
+    local vData = Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_scrollIndex]
+    local options = {
+        {icon = 'info', label = locale('vehicle_info'), values = {
+            {
+                label = locale('est_speed'),
+                description = ('%.2f kmh'):format(GetVehicleModelEstimatedMaxSpeed(vData.vehicleModel) * 3.6),
+            
+            },
+            {
+                label = locale('seats'),
+                description = GetVehicleModelNumberOfSeats(vData.vehicleModel)
+            
+            },
+            {
+                label = locale('plate'),
+                description = GetVehicleNumberPlateText(vehiclePreview),
+            
+            },
+        }}  
+    }
 
     Config.vehicleColors.data[1].colorRGB.r, Config.vehicleColors.data[1].colorRGB.g, Config.vehicleColors.data[1].colorRGB.b = GetVehicleColor(vehiclePreview)
 
 
     if Config.vehicleColors.primary == true then
-        options[#options+1] = {icon = 'droplet', label = locale('primary_color'), values = Config.vehicleColors.data, menuArg = 'primary'}
+        options[#options+1] = {close = false, icon = 'droplet', label = locale('primary_color'), values = Config.vehicleColors.data, menuArg = 'primary'}
     end
     
     if Config.vehicleColors.secondary == true then
-        options[#options+1] = {icon = 'droplet', label = locale('secondary_color'), values = Config.vehicleColors.data, menuArg = 'secondary'}
+        options[#options+1] = {close = false, icon = 'fill-drip', label = locale('secondary_color'), values = Config.vehicleColors.data, menuArg = 'secondary'}
     end
 
     options[#options+1] = {
@@ -154,12 +145,12 @@ local function openVehicleSubmenu(_shopIndex, _selected, _scrollIndex)
         values = {
             {
                 label = locale('cash'), 
-                description = locale('pay_in_cash', Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_scrollIndex].vehiclePrice),
+                description = locale('pay_in_cash', vData.vehiclePrice),
                 method = 'cash'
             }, 
             {
                 label = locale('bank'), 
-                description = locale('pay_in_bank', Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_scrollIndex].vehiclePrice),
+                description = locale('pay_in_bank', vData.vehiclePrice),
                 method = 'bank'
             }
         },
@@ -167,7 +158,7 @@ local function openVehicleSubmenu(_shopIndex, _selected, _scrollIndex)
     
     lib.registerMenu({
         id = 'openVehicleSubmenu',
-        title = Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_scrollIndex].label,
+        title = vData.label,
         position = Config.menuPosition == 'right' and 'top-right' or 'top-left',
         
         onSideScroll = function(selected, scrollIndex, args)
@@ -360,12 +351,11 @@ local function mainThread()
         AddTextComponentString(shopData.shopLabel)
         EndTextCommandSetBlipName(blip)
     end
-    print('START MAIN THREAD')
+
 	while playerLoaded do
 		local playerCoords = GetEntityCoords(cache.ped)
         for idx, shopData in pairs(Config.vehicleShops) do
             local currentDistance = #(playerCoords - shopData.shopCoords)
-            print('Start')
             if currentDistance > 100 then
                 if shopData.point then
                     shopData.point:remove()
@@ -379,7 +369,6 @@ local function mainThread()
                 goto continue
             end
 
-            print('CREATE SHIT')
             shopData.point = createPoint({shopCoords = shopData.shopCoords, index = idx, shopLabel = shopData.shopLabel})
             shopData.npcData.npc = createNpc(shopData.npcData.model, shopData.npcData.position)
             while not DoesEntityExist(shopData.npcData.npc) do
@@ -406,6 +395,7 @@ end)
 
 AddEventHandler('esx:onPlayerLogout', function()
     playerLoaded = false
+    SetEntityVisible(cache.ped, true)
     for _, shopData in pairs(Config.vehicleShops) do
         if shopData.point then
             shopData.point:remove()
@@ -415,3 +405,25 @@ AddEventHandler('esx:onPlayerLogout', function()
     end
 end)
 
+AddEventHandler('onResourceStop', function(resourceName)
+    if (GetCurrentResourceName() ~= resourceName) then return end
+
+    for _, shopData in pairs(Config.vehicleShops) do
+        if DoesBlipExist(shopData.blipData.blip) then
+            RemoveBlip(shopData.blipData.blip)
+        end
+        if shopData.point then
+            shopData.point:remove()
+            DeletePed(shopData.npcData.npc)
+        end
+        shopData.point = nil
+    end
+
+    if vehiclePreview then
+        SetEntityAsMissionEntity(vehiclePreview)
+        _deleteVehicle(vehiclePreview)
+		vehiclePreview = nil
+    end
+
+    SetEntityVisible(cache.ped, true)
+end)
