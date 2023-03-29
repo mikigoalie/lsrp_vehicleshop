@@ -360,11 +360,12 @@ local function mainThread()
         AddTextComponentString(shopData.shopLabel)
         EndTextCommandSetBlipName(blip)
     end
-
-	while ESX.IsPlayerLoaded() do
+    print('START MAIN THREAD')
+	while playerLoaded do
 		local playerCoords = GetEntityCoords(cache.ped)
         for idx, shopData in pairs(Config.vehicleShops) do
             local currentDistance = #(playerCoords - shopData.shopCoords)
+            print('Start')
             if currentDistance > 100 then
                 if shopData.point then
                     shopData.point:remove()
@@ -378,8 +379,12 @@ local function mainThread()
                 goto continue
             end
 
+            print('CREATE SHIT')
             shopData.point = createPoint({shopCoords = shopData.shopCoords, index = idx, shopLabel = shopData.shopLabel})
             shopData.npcData.npc = createNpc(shopData.npcData.model, shopData.npcData.position)
+            while not DoesEntityExist(shopData.npcData.npc) do
+                Wait(100)
+            end
             :: continue ::
         end
 		Wait(1000)
@@ -400,11 +405,13 @@ AddEventHandler('esx:playerLoaded', function(xPlayer, isNew, skin)
 end)
 
 AddEventHandler('esx:onPlayerLogout', function()
-    for i=1, #shopPoint do
-        if shopPoint[i] then
-            shopPoint[i]:remove()
-        end
-    end
     playerLoaded = false
+    for _, shopData in pairs(Config.vehicleShops) do
+        if shopData.point then
+            shopData.point:remove()
+            DeletePed(shopData.npcData.npc)
+        end
+        shopData.point = nil
+    end
 end)
 
