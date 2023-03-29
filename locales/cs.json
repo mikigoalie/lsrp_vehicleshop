@@ -1,0 +1,17 @@
+{
+    "currencySymbol": "$",
+    "priceTag": "Cena: %s ${currencySymbol}",
+    "open_shop": "Otevřít nabídku **%s**",
+    "compacts": "Kompaktní vozidla",
+    "coupes": "Kupé",
+    "muscles": "Muscle",
+    "offroads": "Off-Road",
+    "suvs": "SUV",
+    "sedans": "Sedany",
+    "sports": "Sportovní vozidla",
+    "classics": "Veteráni",
+    "supers": "Super sporty",
+    "vans": "Dodávky",
+    "tip": "Po vybrání vozidla si jej lze ručně nastartovat nebo prohlédnout!"
+
+}

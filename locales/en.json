@@ -1,0 +1,7 @@
+{
+    "currencySymbol": "$",
+    "priceTag": "Cena: %s ${currencySymbol}",
+    "open_shop": "Otevřít nabídku **%s**",
+    "compacts": "NEGER"
+
+}

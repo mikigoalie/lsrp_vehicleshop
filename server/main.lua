@@ -57,6 +57,7 @@ end
 lib.callback.register('lsrp_vehicleShop:server:addVehicle', function(source, vehProperties, vehicleSpot, _shopIndex, _selected, _secondary)
     local xPlayer = ESX.GetPlayerFromId(source)
     if not xPlayer then return false end
+
     local data = Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_secondary]
     local coords = xPlayer.getCoords(true)
     local _vehProps = vehProperties
@@ -73,7 +74,7 @@ lib.callback.register('lsrp_vehicleShop:server:addVehicle', function(source, veh
         _vehProps.plate = getPlate()
     end
 
-    local success = MySQL.insert.await('INSERT INTO owned_vehicles (owner, plate, vehicle, stored, type) VALUES (?, ?, ?, ?, ?)', {xPlayer.identifier, _vehProps.plate, json.encode(_vehProps), vehicleSpot ~= 0, 'car'})
+    local success = MySQL.insert.await('INSERT INTO owned_vehicles (owner, plate, vehicle, stored, type) VALUES (?, ?, ?, ?, ?)', {xPlayer.identifier, _vehProps.plate, json.encode(_vehProps), vehicleSpot ~= 0, Config.vehicleShops[_shopIndex].vehicleList})
     print(('DSUICCCESS? %s'):format(success))
     if vehicleSpot == 0 then
         ESX.OneSync.SpawnVehicle(data.vehicleModel, Config.vehicleShops[_shopIndex].vehicleSpawnCoords.xyz, Config.vehicleShops[_shopIndex].vehicleSpawnCoords.w, _vehProps, function(NetworkId)

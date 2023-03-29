@@ -1,3 +1,6 @@
+lib.locale()
+local blips = {}
+
 local vehiclePreview = nil
 local playerLoaded = false
 local _playerInShop = false
@@ -52,16 +55,21 @@ local function _spawnLocalVehicle(_shopIndex, _selected, _scrollIndex)
         SetVehicleDoorsLocked(vehiclePreview, 4)
     end
 
+    SetVehicleEngineOn(vehiclePreview, false, false, true)
     SetVehicleHandbrake(vehiclePreview, true)
-
-    SetVehicleInteriorlight(vehiclePreview, true) -- from KQ, but not sure it works
-
+    SetVehicleInteriorlight(vehiclePreview, true) -- from KQ, but not sure it work
     FreezeEntityPosition(vehiclePreview, true)
-
 end
 
 AddEventHandler('onResourceStop', function(resourceName)
     if (GetCurrentResourceName() ~= resourceName) then return end
+
+    for _, shopData in pairs(Config.vehicleShops) do
+        if DoesBlipExist(shopData.blipData.blip) then
+            RemoveBlip(shopData.blipData.blip)
+        end
+    end
+
     if vehiclePreview then
         SetEntityAsMissionEntity(vehiclePreview)
         _deleteVehicle(vehiclePreview)
@@ -71,7 +79,6 @@ AddEventHandler('onResourceStop', function(resourceName)
 end)
 
 local function proceedPayment(useBank, _shopIndex, _selected, _secondary)
-
     if not useBank then
         local count = _inv:Search('count', 'money')
         if count < Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_secondary].vehiclePrice then
@@ -232,6 +239,7 @@ local function openVehicleSubmenu(_shopIndex, _selected, _scrollIndex)
 end
 lib.closeAlertDialog()
 local function openMenu(_shopIndex)
+    local hintShown = false
     lastCoords = GetEntityCoords(cache.ped)
 
     local options = {}
@@ -240,11 +248,11 @@ local function openMenu(_shopIndex)
 
     for classIndex, classInfo in pairs(_vehicleClassCFG) do
         for i=1, #classInfo.values do
-            classInfo.values[i].description = ('%s: %s %s'):format(Config.price, groupDigs(classInfo.values[i].vehiclePrice), Config.currency)
+            classInfo.values[i].description = locale('priceTag', groupDigs(classInfo.values[i].vehiclePrice))
         end
         
         options[#options+1] = {
-            label = classInfo.label,
+            label = locale(classInfo.label),
             description = classInfo.description,
             icon = classInfo.icon or 'car',
             arrow = true,
@@ -261,6 +269,10 @@ local function openMenu(_shopIndex)
             _spawnLocalVehicle(_shopIndex, selected, scrollIndex)
         end,
         onSelected = function(selected, scrollIndex, args)
+            if not hintShown then
+                notification('TIP', locale('tip'), 'inform')
+                hintShown = true
+            end
             _spawnLocalVehicle(_shopIndex, selected, scrollIndex)
         end,
         onClose = function(keyPressed)
@@ -302,7 +314,7 @@ local function openMenu(_shopIndex)
 end
 
 local function onEnter(point)
-    lib.showTextUI(('[E] - Otevřít nabídku **%s**'):format(point.shopLabel or '_ERROR'), {icon = 'car', position = "top-center"})
+    lib.showTextUI(locale('open_shop', point.shopLabel or '_ERROR'), {icon = 'car', position = "top-center"})
 end
 
 local function onExit(point)
@@ -322,30 +334,69 @@ local function createPoint(data)
 	return lib.points.new(data.shopCoords, Config.textDistance, {nearby = nearby, onEnter = onEnter, onExit = onExit, shopLabel = data.shopLabel, shopIndex = data.index})
 end
 
+local function createNpc(model, coords)
+    lib.requestModel(model)
+    local npcHandle = CreatePed(5, model, coords.x, coords.y, coords.z, coords.w, false, true)
+    FreezeEntityPosition(npcHandle, true)
+    SetEntityInvincible(npcHandle, true)
+    SetBlockingOfNonTemporaryEvents(npcHandle, true)
+    SetPedCanBeTargetted(npcHandle, false)
+    SetEntityAsMissionEntity(npcHandle, true, true)
+    TaskStartScenarioInPlace(npcHandle, 'WORLD_HUMAN_GUARD_STAND')
+    return npcHandle
+end
+
 local function mainThread()
+    for _, shopData in pairs(Config.vehicleShops) do
+        shopData.blipData.blip = AddBlipForCoord(shopData.shopCoords.xyz)
+        local blip = shopData.blipData.blip 
+        SetBlipSprite(blip, shopData.blipData.sprite)
+        SetBlipDisplay(blip, 4)
+        SetBlipScale(blip, shopData.blipData.scale)
+        SetBlipColour(blip, shopData.blipData.color)
+        SetBlipSecondaryColour(blip, 255, 0, 0)
+        SetBlipAsShortRange(blip, true)
+        BeginTextCommandSetBlipName("STRING")
+        AddTextComponentString(shopData.shopLabel)
+        EndTextCommandSetBlipName(blip)
+    end
+
 	while playerLoaded do
 		local playerCoords = GetEntityCoords(cache.ped)
-        for i=1, #Config.vehicleShops do
-            local currentDistance = #(playerCoords - Config.vehicleShops[i].shopCoords)
+        for idx, shopData in pairs(Config.vehicleShops) do
+            local currentDistance = #(playerCoords - shopData.shopCoords)
             if currentDistance > 100 then
-                if shopPoint[i] then
-                    shopPoint[i]:remove()
+                if shopData.point then
+                    shopData.point:remove()
+                    DeletePed(shopData.npcData.npc)
                 end
+
+                goto continue
             end
 
-            if shopPoint[i] then goto continue end
+            if shopData.point then
+                goto continue
+            end
 
-            shopPoint[i] = createPoint({shopCoords = Config.vehicleShops[i].shopCoords, index = i, shopLabel = Config.vehicleShops[i].shopLabel})
-
+            shopData.point = createPoint({shopCoords = shopData.shopCoords, index = idx, shopLabel = shopData.shopLabel})
+            shopData.npcData.npc = createNpc(shopData.npcData.model, shopData.npcData.position)
             :: continue ::
         end
 		Wait(1000)
 	end
-end CreateThread(mainThread)
-playerLoaded = true
+end 
+
+if ESX.IsPlayerLoaded() then
+    CreateThread(mainThread)
+    playerLoaded = true
+end
 
 AddEventHandler('esx:playerLoaded', function(xPlayer, isNew, skin)
+    if playerLoaded then
+        return
+    end
     playerLoaded = true
+    CreateThread(mainThread)
 end)
 
 AddEventHandler('esx:onPlayerLogout', function()
@@ -356,3 +407,4 @@ AddEventHandler('esx:onPlayerLogout', function()
     end
     playerLoaded = false
 end)
+
