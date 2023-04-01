@@ -14,6 +14,15 @@ Config.vehicleShops = {
         blipData = {color = 5, sprite = 810, scale = 0.8},
         npcData = {model = joaat('IG_Avon'), position = vec4(-30.7224, -1096.5004, 26.2744, 68.4467)}
     },
+    {
+        shopLabel = 'Port of LS', 
+        shopCoords = vec3(-332.4889, -2792.6875, 5.0002), 
+        previewCoords = vec4(-315.2095, -2811.3174, -1.4862, 236.3378), 
+        vehicleSpawnCoords = vec4(-295.9564, -2763.7126, -1.0662, 73.7579),
+        vehicleList = 'boats',
+        blipData = {color = 5, sprite = 755, scale = 0.8},
+        npcData = {model = joaat('A_M_M_HasJew_01'), position = vec4(-331.8239, -2792.7698, 4.0002, 90.6536)}
+    },
 }
 
 Config.vehicleColors = {

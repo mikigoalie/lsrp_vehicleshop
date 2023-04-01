@@ -337,6 +337,9 @@ local function createNpc(model, coords)
     return npcHandle
 end
 
+
+
+
 local function mainThread()
     for _, shopData in pairs(Config.vehicleShops) do
         shopData.blipData.blip = AddBlipForCoord(shopData.shopCoords.xyz)
@@ -352,33 +355,33 @@ local function mainThread()
         EndTextCommandSetBlipName(blip)
     end
 
-	while playerLoaded do
+    while playerLoaded do
 		local playerCoords = GetEntityCoords(cache.ped)
         for idx, shopData in pairs(Config.vehicleShops) do
-            local currentDistance = #(playerCoords - shopData.shopCoords)
-            if currentDistance > 100 then
+            
+            if #(playerCoords - shopData.shopCoords) > 100.0 then
                 if shopData.point then
+                    DeleteEntity(shopData.npcData.npc)
                     shopData.point:remove()
-                    DeletePed(shopData.npcData.npc)
+                    shopData.point = nil
                 end
 
                 goto continue
             end
 
+            
             if shopData.point then
                 goto continue
             end
 
-            shopData.point = createPoint({shopCoords = shopData.shopCoords, index = idx, shopLabel = shopData.shopLabel})
+            shopData.point = createPoint(shopData)
             shopData.npcData.npc = createNpc(shopData.npcData.model, shopData.npcData.position)
-            while not DoesEntityExist(shopData.npcData.npc) do
-                Wait(100)
-            end
-            :: continue ::
+            ::continue::
         end
-		Wait(1000)
-	end
-end 
+
+        Wait(1500)
+    end
+end
 
 if ESX.IsPlayerLoaded() then
     CreateThread(mainThread)
