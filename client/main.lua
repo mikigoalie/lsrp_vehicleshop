@@ -374,7 +374,7 @@ local function mainThread()
                 goto continue
             end
 
-            shopData.point = createPoint(shopData)
+            shopData.point = createPoint({shopCoords = shopData.shopCoords, index = idx, shopLabel = shopData.shopLabel})
             shopData.npcData.npc = createNpc(shopData.npcData.model, shopData.npcData.position)
             ::continue::
         end
