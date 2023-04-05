@@ -31,5 +31,6 @@
     "vehicle_info": "Informations sur le véhicule",
     "est_speed": "Vitesse estimée",
     "seats": "Nombre de places",
-    "plate": "Plaque d'immatriculation"
+    "plate": "Plaque d'immatriculation",
+    "license": "You are not allowed to purchase this type of vehicle"
 }

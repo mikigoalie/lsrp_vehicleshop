@@ -5,6 +5,17 @@ Config.textDistance = 1.0
 Config.notifDuration = 10000
 Config.usePEFCL = true
 Config.vehicleShops = {
+    --[[
+        shopLabel = This is label of the shop
+        shopCoords = Shop point coords (also for blip)
+        previewCoords = Where will the vehicle spawn? Vec4!
+        vehicleSpawnCoords = When you buy the vehicle, where should it spawn? Vec4! (If not empty, it will be added to the garage)
+        vehicleList = String 'car, boats, airplane' to be compatible with your garages
+        blipData = Example: {color = 5, sprite = 755, scale = 0.8},
+        npcData = Example: {model = joaat('A_M_M_HasJew_01'), position = vec4(-331.8239, -2792.7698, 4.0002, 90.6536)},
+        license = String 'dmv', 'boat' whatever you have for your license system (look in db)
+    --]]
+
     {
         shopLabel = 'Deluxe Motorsport', 
         shopCoords = vec3(-32.7748, -1095.4304, 27.2744), 
@@ -12,7 +23,8 @@ Config.vehicleShops = {
         vehicleSpawnCoords = vec4(-23.6204, -1094.3016, 27.0452, 339.1980),
         vehicleList = 'vehicles',
         blipData = {color = 5, sprite = 810, scale = 0.8},
-        npcData = {model = joaat('IG_Avon'), position = vec4(-30.7224, -1096.5004, 26.2744, 68.4467)}
+        npcData = {model = joaat('IG_Avon'), position = vec4(-30.7224, -1096.5004, 26.2744, 68.4467)},
+        license = 'dmv'
     },
     {
         shopLabel = 'Port of LS', 
@@ -21,7 +33,8 @@ Config.vehicleShops = {
         vehicleSpawnCoords = vec4(-295.9564, -2763.7126, -1.0662, 73.7579),
         vehicleList = 'boats',
         blipData = {color = 5, sprite = 755, scale = 0.8},
-        npcData = {model = joaat('A_M_M_HasJew_01'), position = vec4(-331.8239, -2792.7698, 4.0002, 90.6536)}
+        npcData = {model = joaat('A_M_M_HasJew_01'), position = vec4(-331.8239, -2792.7698, 4.0002, 90.6536)},
+        license = 'flight'
     },
 }
 

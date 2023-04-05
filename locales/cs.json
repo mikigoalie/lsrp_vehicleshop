@@ -32,6 +32,7 @@
     "vehicle_info": "Informace o vozidle",
     "est_speed": "Odhadovaná rychlost",
     "seats": "Počet sedadel",
-    "plate": "SPZ"
+    "plate": "SPZ",
+    "license": "Nemáš oprávnění ke koupi tohoto vozidla"
 
 }

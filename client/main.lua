@@ -80,6 +80,12 @@ local function proceedPayment(useBank, _shopIndex, _selected, _secondary)
         return
     end
 
+    if success == 'license' then
+        notification(Config.vehicleShops[_shopIndex]?.shopLabel or '[_ERROR_]', locale('license'), 'error')
+        lib.showMenu('vehicleshop')
+        return
+    end
+
 	if success then
 		local vehicleAdded, vehiclePlate, spotTaken = lib.callback.await('lsrp_vehicleShop:server:addVehicle', 2000, ESX.Game.GetVehicleProperties(vehiclePreview), #lib.getNearbyVehicles(Config.vehicleShops[_shopIndex].vehicleSpawnCoords.xyz, 3, true), _shopIndex, _selected, _secondary)
 		if vehicleAdded then

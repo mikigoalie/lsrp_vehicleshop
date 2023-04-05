@@ -31,5 +31,6 @@
     "vehicle_info": "Vehicle information",
     "est_speed": "Estimated speed",
     "seats": "Number of seats",
-    "plate": "number plate"
+    "plate": "number plate",
+    "license": "You are not allowed to purchase this type of vehicle"
 }
