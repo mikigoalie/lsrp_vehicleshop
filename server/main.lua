@@ -87,10 +87,8 @@ lib.callback.register('lsrp_vehicleShop:server:addVehicle', function(source, veh
             end
         end)
     end
-
-    print(('SUC %s, PLATE %s, VEHSPOT %s'):format(success, _vehProps.plate, vehicleSpot ~= 0))
     
-    return success, _vehProps.plate, vehicleSpot ~= 0
+    return success, _vehProps.plate, vehicleSpot ~= 0, Vehicle
 end)
 
 AddEventHandler('onResourceStop', function(resourceName)

@@ -87,7 +87,7 @@ local function proceedPayment(useBank, _shopIndex, _selected, _secondary)
     end
 
 	if success then
-		local vehicleAdded, vehiclePlate, spotTaken = lib.callback.await('lsrp_vehicleShop:server:addVehicle', 2000, ESX.Game.GetVehicleProperties(vehiclePreview), #lib.getNearbyVehicles(Config.vehicleShops[_shopIndex].vehicleSpawnCoords.xyz, 3, true), _shopIndex, _selected, _secondary)
+		local vehicleAdded, vehiclePlate, spotTaken, netId = lib.callback.await('lsrp_vehicleShop:server:addVehicle', 2000, ESX.Game.GetVehicleProperties(vehiclePreview), #lib.getNearbyVehicles(Config.vehicleShops[_shopIndex].vehicleSpawnCoords.xyz, 3, true), _shopIndex, _selected, _secondary)
 		if vehicleAdded then
             local data = Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_secondary]
 			DoScreenFadeOut(500)
@@ -104,7 +104,16 @@ local function proceedPayment(useBank, _shopIndex, _selected, _secondary)
             SetEntityVisible(cache.ped, true)
 			DoScreenFadeIn(1000)
             notification(Config.vehicleShops[_shopIndex]?.shopLabel or '[_ERROR_]', not spotTaken and locale('vehicle_pick_up', data.label, vehiclePlate) or locale('added_to_garage', data.label, vehiclePlate), 'success')
-			return
+			
+            for i = -1, 0 do
+                local ped = GetPedInVehicleSeat(NetToVeh(netId), i)
+        
+                if ped ~= cache.ped and ped > 0 and NetworkGetEntityOwner(ped) == cache.playerId then
+                    DeleteEntity(ped)
+                end
+            end
+
+            return
 		end
 
         notification(Config.vehicleShops[_shopIndex]?.shopLabel or '[_ERROR_]', locale('error_while_saving'), 'error')
@@ -364,7 +373,6 @@ local function mainThread()
     while playerLoaded do
 		local playerCoords = GetEntityCoords(cache.ped)
         for idx, shopData in pairs(Config.vehicleShops) do
-            
             if #(playerCoords - shopData.shopCoords) > 100.0 then
                 if shopData.point then
                     DeleteEntity(shopData.npcData.npc)
@@ -375,6 +383,7 @@ local function mainThread()
                 goto continue
             end
 
+            RemoveVehiclesFromGeneratorsInArea(shopData.shopCoords.x - 10, shopData.shopCoords.y - 10, shopData.shopCoords.z - 10, shopData.shopCoords.x + 10, shopData.shopCoords.y + 10, shopData.shopCoords.z + 10)
             
             if shopData.point then
                 goto continue
