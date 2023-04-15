@@ -124,7 +124,7 @@ end
 local function openVehicleSubmenu(_shopIndex, _selected, _scrollIndex)
     local vData = Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_scrollIndex]
     local options = {
-        {icon = 'info', label = locale('vehicle_info'), values = {
+        {close = false, icon = 'info', label = locale('vehicle_info'), values = {
             {
                 label = locale('est_speed'),
                 description = ('%.2f kmh'):format(GetVehicleModelEstimatedMaxSpeed(vData.vehicleModel) * 3.6),
@@ -132,7 +132,7 @@ local function openVehicleSubmenu(_shopIndex, _selected, _scrollIndex)
             },
             {
                 label = locale('seats'),
-                description = GetVehicleModelNumberOfSeats(vData.vehicleModel)
+                description = GetVehicleModelNumberOfSeats(vData.vehicleModel),
             
             },
             {
@@ -176,13 +176,10 @@ local function openVehicleSubmenu(_shopIndex, _selected, _scrollIndex)
         id = 'openVehicleSubmenu',
         title = vData.label,
         position = Config.menuPosition == 'right' and 'top-right' or 'top-left',
-        
         onSideScroll = function(selected, scrollIndex, args)
             if not options[selected].menuArg then 
                 return 
-            end
-
-            
+            end 
 
             if options[selected].menuArg == 'primary' then
                 local colorData = options[selected].values[scrollIndex].colorRGB
@@ -197,8 +194,6 @@ local function openVehicleSubmenu(_shopIndex, _selected, _scrollIndex)
             end
         end,
         onSelected = function(selected, scrollIndex, args)
-
-
             if not options[selected].menuArg then 
                 return 
             end
@@ -354,8 +349,6 @@ local function createNpc(model, coords)
 end
 
 
-
-
 local function mainThread()
     for _, shopData in pairs(Config.vehicleShops) do
         shopData.blipData.blip = AddBlipForCoord(shopData.shopCoords.xyz)
@@ -374,44 +367,84 @@ local function mainThread()
     while playerLoaded do
 		local playerCoords = GetEntityCoords(cache.ped)
         for idx, shopData in pairs(Config.vehicleShops) do
-            if #(playerCoords - shopData.shopCoords) > 100.0 then
+            
+            if #(playerCoords - shopData.shopCoords) > 150.0 then
                 if shopData.point then
                     DeleteEntity(shopData.npcData.npc)
                     shopData.point:remove()
                     shopData.point = nil
                 end
+                if shopData.showcaseVehicle then
+                    for i=1, #shopData.showcaseVehicle do
+                        if shopData.showcaseVehicle[i].handle then
+                            while DoesEntityExist(shopData.showcaseVehicle[i].handle) do
+                                SetEntityAsMissionEntity(shopData.showcaseVehicle[i].handle)
+                                DeleteEntity(shopData.showcaseVehicle[i].handle)
+                                Wait(100)
+                            end
+                        end
+                    end
+                end
 
                 goto continue
             end
 
-            RemoveVehiclesFromGeneratorsInArea(shopData.shopCoords.x - 10, shopData.shopCoords.y - 10, shopData.shopCoords.z - 10, shopData.shopCoords.x + 10, shopData.shopCoords.y + 10, shopData.shopCoords.z + 10)
             
-            if shopData.point then
-                goto continue
-            end
+            if #(playerCoords - shopData.shopCoords) < 125.0 then
+                if shopData.point or shopData.npcData.npc then
+                    goto continue
+                end
 
-            shopData.npcData.npc = createNpc(shopData.npcData.model, shopData.npcData.position)
-            if Config.oxTarget then
-                local npcOptions = {
-                    {
-                        name = 'vehicleshop',
-                        icon = shopData.shopIcon or 'car',
-                        label = locale('open_shop', shopData.shopLabel or '_ERROR'),
+                for i=1, #shopData.showcaseVehicle do
+                    local ModelHash = shopData.showcaseVehicle[i].vehicleModel
+                    if not IsModelInCdimage(ModelHash) then return end
+                    RequestModel(ModelHash)
+                    while not HasModelLoaded(ModelHash) do
+                        Wait(0)
+                    end
+
+                    shopData.showcaseVehicle[i].handle = CreateVehicle(ModelHash, shopData.showcaseVehicle[i].coords.xyz, shopData.showcaseVehicle[i].coords.w, false, false)
+                    SetEntityAsMissionEntity(shopData.showcaseVehicle[i].handle)
+                    SetVehicleDoorsLocked(shopData.showcaseVehicle[i].handle, 2)
+                    SetVehicleUndriveable(shopData.showcaseVehicle[i].handle, true)
+                    SetVehicleDoorsLockedForAllPlayers(shopData.showcaseVehicle[i].handle, true)
+                    SetVehicleDirtLevel(shopData.showcaseVehicle[i].handle, 0)
+                    SetVehicleNumberPlateText(shopData.showcaseVehicle[i].handle, ('SHWCS%s'):format(i))
+                    SetVehicleWindowTint(shopData.showcaseVehicle[i].handle, 3)
+                    SetEntityInvincible(shopData.showcaseVehicle[i].handle, true)
+                    SetVehicleDirtLevel(shopData.showcaseVehicle[i].handle, 0.0)
+                    SetVehicleOnGroundProperly(shopData.showcaseVehicle[i].handle)
+                    FreezeEntityPosition(shopData.showcaseVehicle[i].handle, true)
+                    SetVehicleCustomPrimaryColour(shopData.showcaseVehicle[i].handle, shopData.showcaseVehicle[i].color[1] or 255, shopData.showcaseVehicle[i].color[2] or 0, shopData.showcaseVehicle[i].color[3] or 0)
+                end
+                shopData.npcData.npc = createNpc(shopData.npcData.model, shopData.npcData.position)
+                
+
+                if Config.oxTarget then
+                    local npcOptions = {
+                        {
+                            name = 'vehicleshop',
+                            icon = shopData.shopIcon or 'car',
+                            label = locale('open_shop', shopData.shopLabel or '_ERROR'),
+                            distance = 2.5,
+                            onSelect = function(data)
+                                openMenu(idx)
+                            end
+                        }
                     }
-                }
-
-                exports.ox_target:addLocalEntity(shopData.npcData.npc, npcOptions)
-                goto continue
+    
+                    exports.ox_target:addLocalEntity(shopData.npcData.npc, npcOptions)
+                    goto continue
+                end
+    
+                shopData.point = createPoint({shopCoords = shopData.shopCoords, index = idx, shopLabel = shopData.shopLabel})
             end
-
-            shopData.point = createPoint({shopCoords = shopData.shopCoords, index = idx, shopLabel = shopData.shopLabel, shopIcon = shopData.shopIcon})
             ::continue::
         end
 
         Wait(1500)
     end
 end
-
 if ESX.IsPlayerLoaded() then
     CreateThread(mainThread)
     playerLoaded = true
