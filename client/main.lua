@@ -10,6 +10,7 @@ local lastIndex = nil
 local loadingVehicle = false
 local _inv = exports.ox_inventory
 
+
 local function groupDigs(price)
 	local left,num,right = string.match(price,'^([^%d]*%d)(%d*)(.-)$')
 
@@ -320,7 +321,7 @@ local function openMenu(_shopIndex)
 end
 
 local function onEnter(point)
-    lib.showTextUI(locale('open_shop', point.shopLabel or '_ERROR'), {icon = 'car', position = "top-center"})
+    lib.showTextUI(locale('open_shop', point.shopLabel or '_ERROR'), {icon = point.shopIcon or 'car', position = "top-center"})
 end
 
 local function onExit(point)
@@ -337,7 +338,7 @@ local function nearby(point)
 end
 
 local function createPoint(data)
-	return lib.points.new(data.shopCoords, Config.textDistance, {nearby = nearby, onEnter = onEnter, onExit = onExit, shopLabel = data.shopLabel, shopIndex = data.index})
+	return lib.points.new(data.shopCoords, Config.textDistance, {nearby = nearby, onEnter = onEnter, onExit = onExit, shopIcon = data.shopIcon, shopLabel = data.shopLabel, shopIndex = data.index})
 end
 
 local function createNpc(model, coords)
@@ -389,8 +390,21 @@ local function mainThread()
                 goto continue
             end
 
-            shopData.point = createPoint({shopCoords = shopData.shopCoords, index = idx, shopLabel = shopData.shopLabel})
             shopData.npcData.npc = createNpc(shopData.npcData.model, shopData.npcData.position)
+            if Config.oxTarget then
+                local npcOptions = {
+                    {
+                        name = 'vehicleshop',
+                        icon = shopData.shopIcon or 'car',
+                        label = locale('open_shop', shopData.shopLabel or '_ERROR'),
+                    }
+                }
+
+                exports.ox_target:addLocalEntity(shopData.npcData.npc, npcOptions)
+                goto continue
+            end
+
+            shopData.point = createPoint({shopCoords = shopData.shopCoords, index = idx, shopLabel = shopData.shopLabel, shopIcon = shopData.shopIcon})
             ::continue::
         end
 

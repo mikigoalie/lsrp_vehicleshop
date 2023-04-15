@@ -1,5 +1,24 @@
 local _inv = exports.ox_inventory
 
+-- Do not rename resource or touch this part of code!
+local function initializedThread()
+    if GetCurrentResourceName() ~= 'lsrp_vehicleshop' then
+        print('^1It is required! to keep the resource name original. Please rename the resource back.^0')
+        StopResource(GetCurrentResourceName())
+        return
+    end
+
+    print('$$\\      $$$$$$\\ $$$$$$$\\ $$$$$$$\\ ')
+    print('$$ |    $$  __$$\\$$  __$$\\$$  __$$\\ ')
+    print('$$ |    $$ /  \\__$$ |  $$ $$ |  $$ |')
+    print('$$ |    \\$$$$$$\\ $$$$$$$  $$$$$$$  |')
+    print('$$ |     \\____$$\\$$  __$$<$$  ____/ ')
+    print('$$ |    $$\\   $$ $$ |  $$ $$ |      ')
+    print('$$$$$$$$\\$$$$$$  $$ |  $$ $$ |      ')
+    print('\\________\\______/\\__|  \\__\\__|')
+    print('^2LSRP Vehicleshop initialized^0')
+end
+
 lib.callback.register('lsrp_vehicleshop:setInstance', function(source, entered)
     SetPlayerRoutingBucket(source, entered and source or 0)
     return GetPlayerRoutingBucket(source) == source
@@ -94,3 +113,5 @@ end)
 AddEventHandler('onResourceStop', function(resourceName)
     if GetCurrentResourceName() ~= resourceName then return end
 end)
+
+MySQL.ready(initializedThread)
