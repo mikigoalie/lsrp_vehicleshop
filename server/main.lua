@@ -30,6 +30,7 @@ lib.callback.register('lsrp_vehicleShop:server:payment', function(source, useBan
     local xPlayer = ESX.GetPlayerFromId(source)
     if not xPlayer then return false end
 
+    
     if not _shopIndex or not _selected or not _secondary then
         return false
     end
@@ -37,6 +38,14 @@ lib.callback.register('lsrp_vehicleShop:server:payment', function(source, useBan
     local vehiclePrice = Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_secondary].vehiclePrice
 
     if not tonumber(vehiclePrice) or vehiclePrice < 1000 then return false end
+
+    if Config.vehicleShops[_shopIndex].license then
+        local hasLicense = MySQL.single.await('SELECT type FROM user_licenses WHERE owner = ? AND type = ?', {xPlayer.identifier, Config.vehicleShops[_shopIndex].license})
+        if not hasLicense then
+            return 'license'
+        end
+    end
+
 
     if not useBank then
         local money = _inv:GetItem(source, 'money', nil, true)
@@ -69,8 +78,9 @@ local function getPlate()
         str = ESX.GetRandomString(8)
         local alreadyExists = MySQL.single.await('SELECT owner FROM owned_vehicles WHERE plate = ?', {str})
     until not alreadyExists?.owner
-    return str
+    return string.upper(str)
 end
+
 lib.callback.register('lsrp_vehicleShop:server:generateplate', function(source)
     return getPlate()
 end)
