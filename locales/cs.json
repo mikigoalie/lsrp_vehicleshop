@@ -33,6 +33,7 @@
     "est_speed": "Odhadovaná rychlost",
     "seats": "Počet sedadel",
     "plate": "SPZ",
-    "license": "Nemáš oprávnění ke koupi tohoto vozidla"
+    "license": "Nemáš oprávnění ke koupi tohoto vozidla",
+    "colorize_vehicle": "Vyber si barvu"
 
 }

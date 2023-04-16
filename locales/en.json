@@ -32,5 +32,6 @@
     "est_speed": "Estimated speed",
     "seats": "Number of seats",
     "plate": "number plate",
-    "license": "You are not allowed to purchase this type of vehicle"
+    "license": "You are not allowed to purchase this type of vehicle",
+    "colorize_vehicle": "Choose your color"
 }

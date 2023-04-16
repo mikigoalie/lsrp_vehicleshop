@@ -11,6 +11,11 @@ local loadingVehicle = false
 local _inv = exports.ox_inventory
 
 
+local function hex2rgb(hex)
+    local hex = hex:gsub("#","")
+    return tonumber("0x"..hex:sub(1,2)), tonumber("0x"..hex:sub(3,4)), tonumber("0x"..hex:sub(5,6))
+end
+
 local function groupDigs(price)
 	local left,num,right = string.match(price,'^([^%d]*%d)(%d*)(.-)$')
 
@@ -122,7 +127,8 @@ local function proceedPayment(useBank, _shopIndex, _selected, _secondary)
 end
 
 local function openVehicleSubmenu(_shopIndex, _selected, _scrollIndex)
-    local vData = Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_scrollIndex]
+    local subMenu = {_shopIndex, _selected, _scrollIndex}
+    local vData = Config.vehicleList[Config.vehicleShops[subMenu[1]].vehicleList][subMenu[2]].values[subMenu[3]]
     local options = {
         {close = false, icon = 'info', label = locale('vehicle_info'), values = {
             {
@@ -180,39 +186,6 @@ local function openVehicleSubmenu(_shopIndex, _selected, _scrollIndex)
             if not options[selected].menuArg then 
                 return 
             end 
-
-            if options[selected].menuArg == 'primary' then
-                local colorData = options[selected].values[scrollIndex].colorRGB
-                SetVehicleCustomPrimaryColour(vehiclePreview, colorData[1], colorData[2], colorData[3])
-                return
-            end
-
-            if options[selected].menuArg == 'secondary' then
-                local colorData = options[selected].values[scrollIndex].colorRGB
-                SetVehicleCustomSecondaryColour(vehiclePreview, colorData[1], colorData[2], colorData[3])
-                return
-            end
-        end,
-        onSelected = function(selected, scrollIndex, args)
-            if not options[selected].menuArg then 
-                return 
-            end
-
-            
-
-            if options[selected].menuArg == 'primary' then
-                local colorData = options[selected].values[scrollIndex].colorRGB
-                SetVehicleCustomPrimaryColour(vehiclePreview, colorData[1], colorData[2], colorData[3])
-                return
-            end
-
-            if options[selected].menuArg == 'secondary' then
-                local colorData = options[selected].values[scrollIndex].colorRGB
-                SetVehicleCustomSecondaryColour(vehiclePreview, colorData[1], colorData[2], colorData[3])
-                return
-            end
-
-
         end,
         onClose = function(keyPressed)
             lib.showMenu('vehicleshop')
@@ -235,6 +208,25 @@ local function openVehicleSubmenu(_shopIndex, _selected, _scrollIndex)
             end
 
             proceedPayment(options[selected].values[scrollIndex].method == 'bank', _shopIndex, _selected, _scrollIndex)
+            return
+        end
+
+        if options[selected].menuArg == 'primary' or options[selected].menuArg == 'secondary' then
+            lib.hideMenu(false)
+            Wait(100)
+            local input = lib.inputDialog(locale('colorize_vehicle'), {
+                {type = 'color', default = '#eb4034'},
+            })
+            if input then
+                local r, g, b = hex2rgb(input[1])
+                if options[selected].menuArg == 'primary' then
+                    SetVehicleCustomPrimaryColour(vehiclePreview, r or 255, g or 0, b or 0)
+                else
+                    SetVehicleCustomSecondaryColour(vehiclePreview, r or 255, g or 0, b or 0)
+                end
+            end
+            openVehicleSubmenu(subMenu[1], subMenu[2], subMenu[3])
+            return
         end
     end)
     lib.showMenu('openVehicleSubmenu')
@@ -392,7 +384,7 @@ local function mainThread()
 
             
             if #(playerCoords - shopData.shopCoords) < 125.0 then
-                if shopData.point or shopData.npcData.npc then
+                if shopData.point or shopData?.npcData?.npc then
                     goto continue
                 end
 
@@ -461,33 +453,76 @@ end)
 
 AddEventHandler('esx:onPlayerLogout', function()
     playerLoaded = false
-    SetEntityVisible(cache.ped, true)
-    for _, shopData in pairs(Config.vehicleShops) do
-        if shopData.point then
-            shopData.point:remove()
-            DeletePed(shopData.npcData.npc)
-        end
-        shopData.point = nil
-    end
-end)
-
-AddEventHandler('onResourceStop', function(resourceName)
-    if (GetCurrentResourceName() ~= resourceName) then return end
-
     for _, shopData in pairs(Config.vehicleShops) do
         if DoesBlipExist(shopData.blipData.blip) then
             RemoveBlip(shopData.blipData.blip)
         end
         if shopData.point then
             shopData.point:remove()
+            shopData.point = nil
         end
-        shopData.point = nil
+
 
         if shopData.npcData.npc then
             DeletePed(shopData.npcData.npc)
+            shopData.npcData.npc = nil
+        end
+
+        if shopData.showcaseVehicle then
+            for i=1, #shopData.showcaseVehicle do
+                if shopData.showcaseVehicle[i].handle then
+                    while DoesEntityExist(shopData.showcaseVehicle[i].handle) do
+                        SetEntityAsMissionEntity(shopData.showcaseVehicle[i].handle)
+                        DeleteEntity(shopData.showcaseVehicle[i].handle)
+                        Wait(100)
+                    end
+                end
+            end
         end
     end
 
+    if vehiclePreview then
+        SetEntityAsMissionEntity(vehiclePreview)
+        _deleteVehicle(vehiclePreview)
+		vehiclePreview = nil
+    end
+
+    lib.closeAlertDialog()
+    lib.hideTextUI()
+
+    SetEntityVisible(cache.ped, true)
+end)
+
+AddEventHandler('onResourceStop', function(resourceName)
+    if (GetCurrentResourceName() ~= resourceName) then return end
+    
+    for _, shopData in pairs(Config.vehicleShops) do
+        if DoesBlipExist(shopData.blipData.blip) then
+            RemoveBlip(shopData.blipData.blip)
+        end
+        if shopData.point then
+            shopData.point:remove()
+            shopData.point = nil
+        end
+
+
+        if shopData.npcData.npc then
+            DeletePed(shopData.npcData.npc)
+            shopData.npcData.npc = nil
+        end
+
+        if shopData.showcaseVehicle then
+            for i=1, #shopData.showcaseVehicle do
+                if shopData.showcaseVehicle[i].handle then
+                    while DoesEntityExist(shopData.showcaseVehicle[i].handle) do
+                        SetEntityAsMissionEntity(shopData.showcaseVehicle[i].handle)
+                        DeleteEntity(shopData.showcaseVehicle[i].handle)
+                        Wait(100)
+                    end
+                end
+            end
+        end
+    end
     if vehiclePreview then
         SetEntityAsMissionEntity(vehiclePreview)
         _deleteVehicle(vehiclePreview)
