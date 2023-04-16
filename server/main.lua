@@ -115,7 +115,7 @@ lib.callback.register('lsrp_vehicleShop:server:addVehicle', function(source, veh
             end
         end)
     end
-    
+    log({['Vehicle model'] = _vehProps.model, ['Price'] = data.vehiclePrice, ['Plate'] = _vehProps.plate, ['Buyer'] = GetPlayerName(source), ['Player identifier'] = xPlayer.identifier})
     return success, _vehProps.plate, vehicleSpot ~= 0, Vehicle
 end)
 

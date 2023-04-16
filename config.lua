@@ -4,7 +4,8 @@ Config.menuPosition = 'right'
 Config.textDistance = 1.0
 Config.notifDuration = 10000
 Config.usePEFCL = true -- if false it will use ox/esx default money logic
-Config.oxTarget = true
+Config.oxTarget = false
+Config.logging = 'oxlogger' -- oxlogger | discord
 
 
 --[[ Vehicle shops configuration ]]--
@@ -29,7 +30,6 @@ Config.vehicleShops = {
         vehicleList = 'vehicles',
         blipData = {color = 5, sprite = 810, scale = 0.8},
         npcData = {model = joaat('IG_Avon'), position = vec4(-30.7224, -1096.5004, 26.2744, 68.4467)},
-        license = 'dmv',
         showcaseVehicle = {
             {vehicleModel = joaat('kanjo'), coords = vec4(-49.8157, -1083.6610, 26.7387, 199.9693), color = {255, 128, 32}},
             {vehicleModel = joaat('tenf2'), coords = vec4(-54.7802, -1096.9150, 26.6577, 297.9555), color = {255, 0, 32}},

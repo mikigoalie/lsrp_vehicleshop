@@ -278,18 +278,19 @@ local function openMenu(_shopIndex)
             _spawnLocalVehicle(_shopIndex, selected, scrollIndex)
         end,
         onClose = function(keyPressed)
-            DoScreenFadeOut(duration or 500)
+            DoScreenFadeOut(500)
             while not IsScreenFadedOut() do
                 Wait(50)
             end
             while DoesEntityExist(vehiclePreview) do
                 _deleteVehicle()
             end
-            --local selfInstance = lib.callback.await('lsrp_vehicleshop:setInstance', 5000, false)
             SetEntityCoords(cache.ped, lastCoords)
-            Wait(duration or 1000)
+            Wait(500)
             SetEntityVisible(cache.ped, true)
-            DoScreenFadeIn(duration or 1000)
+            DoScreenFadeIn(1000)
+            Wait(1000)
+
         end,
         options = options
     }, function(selected, scrollIndex, args)
@@ -477,11 +478,14 @@ AddEventHandler('onResourceStop', function(resourceName)
         if DoesBlipExist(shopData.blipData.blip) then
             RemoveBlip(shopData.blipData.blip)
         end
-        if shopData.point or shopData.npcData.npc then
+        if shopData.point then
             shopData.point:remove()
-            DeletePed(shopData.npcData.npc)
         end
         shopData.point = nil
+
+        if shopData.npcData.npc then
+            DeletePed(shopData.npcData.npc)
+        end
     end
 
     if vehiclePreview then
