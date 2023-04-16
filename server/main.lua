@@ -1,9 +1,23 @@
 local _inv = exports.ox_inventory
 
-lib.callback.register('lsrp_vehicleshop:setInstance', function(source, entered)
-    SetPlayerRoutingBucket(source, entered and source or 0)
-    return GetPlayerRoutingBucket(source) == source
-end)
+-- Do not rename resource or touch this part of code!
+local function initializedThread()
+    if GetCurrentResourceName() ~= 'lsrp_vehicleshop' then
+        print('^1It is required! to keep the resource name original. Please rename the resource back.^0')
+        StopResource(GetCurrentResourceName())
+        return
+    end
+
+    print('$$\\      $$$$$$\\ $$$$$$$\\ $$$$$$$\\ ')
+    print('$$ |    $$  __$$\\$$  __$$\\$$  __$$\\ ')
+    print('$$ |    $$ /  \\__$$ |  $$ $$ |  $$ |')
+    print('$$ |    \\$$$$$$\\ $$$$$$$  $$$$$$$  |')
+    print('$$ |     \\____$$\\$$  __$$<$$  ____/ ')
+    print('$$ |    $$\\   $$ $$ |  $$ $$ |      ')
+    print('$$$$$$$$\\$$$$$$  $$ |  $$ $$ |      ')
+    print('\\________\\______/\\__|  \\__\\__|')
+    print('^2LSRP Vehicleshop initialized^0')
+end
 
 lib.callback.register('lsrp_vehicleshop:spawnPreview', function(source, _shopIndex, _selected, _scrollIndex)
     local vehicleModel = Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_scrollIndex].vehicleModel
@@ -16,6 +30,7 @@ lib.callback.register('lsrp_vehicleShop:server:payment', function(source, useBan
     local xPlayer = ESX.GetPlayerFromId(source)
     if not xPlayer then return false end
 
+    
     if not _shopIndex or not _selected or not _secondary then
         return false
     end
@@ -23,6 +38,14 @@ lib.callback.register('lsrp_vehicleShop:server:payment', function(source, useBan
     local vehiclePrice = Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_secondary].vehiclePrice
 
     if not tonumber(vehiclePrice) or vehiclePrice < 1000 then return false end
+
+    if Config.vehicleShops[_shopIndex].license then
+        local hasLicense = MySQL.single.await('SELECT type FROM user_licenses WHERE owner = ? AND type = ?', {xPlayer.identifier, Config.vehicleShops[_shopIndex].license})
+        if not hasLicense then
+            return 'license'
+        end
+    end
+
 
     if not useBank then
         local money = _inv:GetItem(source, 'money', nil, true)
@@ -55,8 +78,13 @@ local function getPlate()
         str = ESX.GetRandomString(8)
         local alreadyExists = MySQL.single.await('SELECT owner FROM owned_vehicles WHERE plate = ?', {str})
     until not alreadyExists?.owner
-    return str
+    return string.upper(str)
 end
+
+lib.callback.register('lsrp_vehicleShop:server:generateplate', function(source)
+    return getPlate()
+end)
+
 
 
 lib.callback.register('lsrp_vehicleShop:server:addVehicle', function(source, vehProperties, vehicleSpot, _shopIndex, _selected, _secondary)
@@ -87,10 +115,13 @@ lib.callback.register('lsrp_vehicleShop:server:addVehicle', function(source, veh
             end
         end)
     end
-    
+    print(json.encode(_vehProps))
+    log({['Vehicle model'] = data.label, ['Price'] = data.vehiclePrice, ['Plate'] = _vehProps.plate, ['Buyer'] = GetPlayerName(source), ['Player identifier'] = xPlayer.identifier})
     return success, _vehProps.plate, vehicleSpot ~= 0, Vehicle
 end)
 
 AddEventHandler('onResourceStop', function(resourceName)
     if GetCurrentResourceName() ~= resourceName then return end
 end)
+
+MySQL.ready(initializedThread)

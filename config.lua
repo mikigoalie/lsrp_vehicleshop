@@ -1,9 +1,14 @@
 Config = {}
-Config.currency = '$'
+--[[ Main section ]]--
 Config.menuPosition = 'right'
 Config.textDistance = 1.0
 Config.notifDuration = 10000
-Config.usePEFCL = true
+Config.usePEFCL = true -- if false it will use ox/esx default money logic
+Config.oxTarget = false
+Config.logging = 'oxlogger' -- oxlogger or 'YOUR_WEBHOOK'
+
+
+--[[ Vehicle shops configuration ]]--
 Config.vehicleShops = {
     --[[
         shopLabel = This is label of the shop
@@ -17,17 +22,24 @@ Config.vehicleShops = {
     --]]
 
     {
-        shopLabel = 'Deluxe Motorsport', 
+        shopLabel = 'Deluxe Motorsport',
+        shopIcon = 'fa-solid fa-car',
         shopCoords = vec3(-32.7748, -1095.4304, 27.2744), 
         previewCoords = vec4(-47.6072, -1092.1250, 26.7543, 90.0), 
         vehicleSpawnCoords = vec4(-23.6204, -1094.3016, 27.0452, 339.1980),
         vehicleList = 'vehicles',
         blipData = {color = 5, sprite = 810, scale = 0.8},
         npcData = {model = joaat('IG_Avon'), position = vec4(-30.7224, -1096.5004, 26.2744, 68.4467)},
-        license = 'dmv'
+        showcaseVehicle = {
+            {vehicleModel = joaat('kanjo'), coords = vec4(-49.8157, -1083.6610, 26.7387, 199.9693), color = {255, 128, 32}},
+            {vehicleModel = joaat('tenf2'), coords = vec4(-54.7802, -1096.9150, 26.6577, 297.9555), color = {255, 0, 32}},
+            {vehicleModel = joaat('rhinehart'), coords = vec4(-42.3705, -1101.3069, 27.0423, 350.3064), color = {255, 0, 32}},
+            {vehicleModel = joaat('ztype'), coords = vec4(-36.6870, -1093.3662, 26.7255, 153.1380), color = {255, 0, 32}},
+        }
     },
     {
-        shopLabel = 'Port of LS', 
+        shopLabel = 'Port of LS',
+        shopIcon = 'fa-solid fa-anchor',
         shopCoords = vec3(-332.4889, -2792.6875, 5.0002), 
         previewCoords = vec4(-315.2095, -2811.3174, -1.4862, 236.3378), 
         vehicleSpawnCoords = vec4(-295.9564, -2763.7126, -1.0662, 73.7579),
@@ -44,21 +56,21 @@ Config.vehicleColors = {
     data = {
         {label = 'Základní', colorRGB = {255, 0, 0}}, -- DEFAULT, KEEP IT
         {label = 'Červená', colorRGB = {255, 0, 0}},
-        {label = 'Zelená',colorRGB = {0, 255, 0}},
-        {label = 'Modrá',colorRGB = {0, 0, 255}},
-        {label = 'Žlutá',colorRGB = {255, 255, 0}},
-        {label = 'Fialová',colorRGB = {255, 0, 255}},
-        {label = 'Bílá',colorRGB = {255, 255, 255}},
-        {label = 'Černá',colorRGB = {0, 0, 0}},
-        {label = 'Oranžová',colorRGB = {255, 165, 0}},
-        {label = 'Růžová',colorRGB = {255, 192, 203}},
-        {label = 'Hnědá',colorRGB = {165, 42, 42}},
-        {label = 'Stříbrná',colorRGB = {192, 192, 192}},
-        {label = 'Zlatá',colorRGB = {255, 215, 0}},
-        {label = 'Světle modrá',colorRGB = {135, 206, 250}},
-        {label = 'Tmavě zelená',colorRGB = {0, 100, 0}},
-        {label = 'Světle zelená',colorRGB = {144, 238, 144}},
-        {label = 'Světle šedá',colorRGB = {211, 211, 211}}
+        {label = 'Zelená', colorRGB = {0, 255, 0}},
+        {label = 'Modrá', colorRGB = {0, 0, 255}},
+        {label = 'Žlutá', colorRGB = {255, 255, 0}},
+        {label = 'Fialová', colorRGB = {255, 0, 255}},
+        {label = 'Bílá', colorRGB = {255, 255, 255}},
+        {label = 'Černá', colorRGB = {0, 0, 0}},
+        {label = 'Oranžová', colorRGB = {255, 165, 0}},
+        {label = 'Růžová', colorRGB = {255, 192, 203}},
+        {label = 'Hnědá', colorRGB = {165, 42, 42}},
+        {label = 'Stříbrná', colorRGB = {192, 192, 192}},
+        {label = 'Zlatá', colorRGB = {255, 215, 0}},
+        {label = 'Světle modrá', colorRGB = {135, 206, 250}},
+        {label = 'Tmavě zelená', colorRGB = {0, 100, 0}},
+        {label = 'Světle zelená', colorRGB = {144, 238, 144}},
+        {label = 'Světle šedá', colorRGB = {211, 211, 211}}
     }
 }
 
@@ -153,7 +165,7 @@ Config.vehicleList = {
         {label = 'sports', defaultIndex = 2, dbData = 'car', values = {
             {label = 'Alpha', vehicleModel = joaat('alpha'), vehiclePrice = 1000, description = vehiclePrice}, 
             {label = 'Banshee', vehicleModel = joaat('banshee'), vehiclePrice = 1000, description = vehiclePrice}, 
-            {label = 'Bestia GTS', vehicleModel = joaat('vestiagts'), vehiclePrice = 1000, description = vehiclePrice},
+            {label = 'Bestia GTS', vehicleModel = joaat('bestiagts'), vehiclePrice = 1000, description = vehiclePrice},
             {label = 'Buffalo', vehicleModel = joaat('buffalo'), vehiclePrice = 1000, description = vehiclePrice},
             {label = 'Carbonizzare', vehicleModel = joaat('carbonizzare'), vehiclePrice = 1000, description = vehiclePrice},
             {label = 'Coquette', vehicleModel = joaat('coquette'), vehiclePrice = 1000, description = vehiclePrice},
