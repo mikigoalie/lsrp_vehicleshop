@@ -23,4 +23,12 @@ function log(text)
     end
 end
 
+function getBankMoney(source)
+    local xPlayer = ESX.GetPlayerFromId(source)
+    return xPlayer.getAccount('bank').money
+end
 
+function removeBankMoney(source, vehPrice)
+    local xPlayer = ESX.GetPlayerFromId(source)
+    xPlayer.removeAccountMoney('bank', vehPrice)
+end

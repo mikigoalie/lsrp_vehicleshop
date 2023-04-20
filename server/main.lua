@@ -27,10 +27,6 @@ lib.callback.register('lsrp_vehicleshop:spawnPreview', function(source, _shopInd
 end)
 
 lib.callback.register('lsrp_vehicleShop:server:payment', function(source, useBank, _shopIndex, _selected, _secondary)
-    local xPlayer = ESX.GetPlayerFromId(source)
-    if not xPlayer then return false end
-
-    
     if not _shopIndex or not _selected or not _secondary then
         return false
     end
@@ -57,7 +53,7 @@ lib.callback.register('lsrp_vehicleShop:server:payment', function(source, useBan
     end
 
 
-    local bankMoney = Config.usePEFCL and exports.pefcl:getDefaultAccountBalance(source).data or xPlayer.getAccount('bank').money
+    local bankMoney = Config.usePEFCL and exports.pefcl:getDefaultAccountBalance(source).data or getBankMoney(source)
     if bankMoney < vehiclePrice then
         return false
     end
@@ -66,7 +62,7 @@ lib.callback.register('lsrp_vehicleShop:server:payment', function(source, useBan
         local result = exports.pefcl:removeBankBalance(source, { amount = vehiclePrice, message = ('Zakoupení vozidla %s'):format(Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_secondary].label) })
         return result.status == 'ok' or false
     else
-        xPlayer.removeAccountMoney('bank', vehiclePrice)
+        removeBankMoney(source, vehiclePrice)
         return true
     end
 
@@ -115,7 +111,6 @@ lib.callback.register('lsrp_vehicleShop:server:addVehicle', function(source, veh
             end
         end)
     end
-    print(json.encode(_vehProps))
     log({['Vehicle model'] = data.label, ['Price'] = data.vehiclePrice, ['Plate'] = _vehProps.plate, ['Buyer'] = GetPlayerName(source), ['Player identifier'] = xPlayer.identifier})
     return success, _vehProps.plate, vehicleSpot ~= 0, Vehicle
 end)
