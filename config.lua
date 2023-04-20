@@ -6,6 +6,11 @@ Config.notifDuration = 10000
 Config.usePEFCL = true -- if false it will use ox/esx default money logic
 Config.oxTarget = false
 Config.logging = 'oxlogger' -- oxlogger or 'YOUR_WEBHOOK'
+Config.vehicleColors = {    -- Allow custom RGB Colors for primary and secondary? Currently without any money take
+    primary = true,
+    secondary = true
+}
+
 
 
 --[[ Vehicle shops configuration ]]--
@@ -48,30 +53,6 @@ Config.vehicleShops = {
         npcData = {model = joaat('A_M_M_HasJew_01'), position = vec4(-331.8239, -2792.7698, 4.0002, 90.6536)},
         license = 'flight'
     },
-}
-
-Config.vehicleColors = {
-    primary = true,
-    secondary = true,
-    data = {
-        {label = 'Základní', colorRGB = {255, 0, 0}}, -- DEFAULT, KEEP IT
-        {label = 'Červená', colorRGB = {255, 0, 0}},
-        {label = 'Zelená', colorRGB = {0, 255, 0}},
-        {label = 'Modrá', colorRGB = {0, 0, 255}},
-        {label = 'Žlutá', colorRGB = {255, 255, 0}},
-        {label = 'Fialová', colorRGB = {255, 0, 255}},
-        {label = 'Bílá', colorRGB = {255, 255, 255}},
-        {label = 'Černá', colorRGB = {0, 0, 0}},
-        {label = 'Oranžová', colorRGB = {255, 165, 0}},
-        {label = 'Růžová', colorRGB = {255, 192, 203}},
-        {label = 'Hnědá', colorRGB = {165, 42, 42}},
-        {label = 'Stříbrná', colorRGB = {192, 192, 192}},
-        {label = 'Zlatá', colorRGB = {255, 215, 0}},
-        {label = 'Světle modrá', colorRGB = {135, 206, 250}},
-        {label = 'Tmavě zelená', colorRGB = {0, 100, 0}},
-        {label = 'Světle zelená', colorRGB = {144, 238, 144}},
-        {label = 'Světle šedá', colorRGB = {211, 211, 211}}
-    }
 }
 
 Config.vehicleList = {

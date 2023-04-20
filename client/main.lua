@@ -149,15 +149,12 @@ local function openVehicleSubmenu(_shopIndex, _selected, _scrollIndex)
         }}  
     }
 
-    Config.vehicleColors.data[1].colorRGB.r, Config.vehicleColors.data[1].colorRGB.g, Config.vehicleColors.data[1].colorRGB.b = GetVehicleColor(vehiclePreview)
-
-
     if Config.vehicleColors.primary == true then
-        options[#options+1] = {close = false, icon = 'droplet', label = locale('primary_color'), values = Config.vehicleColors.data, menuArg = 'primary'}
+        options[#options+1] = {close = false, icon = 'droplet', label = locale('primary_color'), description = locale('primary_color_desc'), menuArg = 'primary'}
     end
     
     if Config.vehicleColors.secondary == true then
-        options[#options+1] = {close = false, icon = 'fill-drip', label = locale('secondary_color'), values = Config.vehicleColors.data, menuArg = 'secondary'}
+        options[#options+1] = {close = false, icon = 'fill-drip', label = locale('secondary_color'), description = locale('secondary_color_desc'), menuArg = 'secondary'}
     end
 
     options[#options+1] = {
@@ -363,9 +360,12 @@ local function mainThread()
             
             if #(playerCoords - shopData.shopCoords) > 150.0 then
                 if shopData.point then
-                    DeleteEntity(shopData.npcData.npc)
                     shopData.point:remove()
                     shopData.point = nil
+                end
+                if shopData.npcData.npc then
+                    DeleteEntity(shopData.npcData.npc)
+                    shopData.npcData.npc = nil
                 end
                 if shopData.showcaseVehicle then
                     for i=1, #shopData.showcaseVehicle do
@@ -487,6 +487,12 @@ AddEventHandler('esx:onPlayerLogout', function()
 		vehiclePreview = nil
     end
 
+    while DoesEntityExist(vehiclePreview) do
+        SetEntityAsMissionEntity(vehiclePreview)
+        DeleteEntity(vehiclePreview)
+        Wait(10)
+    end
+
     lib.closeAlertDialog()
     lib.hideTextUI()
 
@@ -494,6 +500,7 @@ AddEventHandler('esx:onPlayerLogout', function()
 end)
 
 AddEventHandler('onResourceStop', function(resourceName)
+    print('RESOURCE STOP')
     if (GetCurrentResourceName() ~= resourceName) then return end
     
     for _, shopData in pairs(Config.vehicleShops) do
@@ -514,23 +521,35 @@ AddEventHandler('onResourceStop', function(resourceName)
         if shopData.showcaseVehicle then
             for i=1, #shopData.showcaseVehicle do
                 if shopData.showcaseVehicle[i].handle then
-                    while DoesEntityExist(shopData.showcaseVehicle[i].handle) do
-                        SetEntityAsMissionEntity(shopData.showcaseVehicle[i].handle)
-                        DeleteEntity(shopData.showcaseVehicle[i].handle)
-                        Wait(100)
-                    end
+                    CreateThread(function()
+                        while DoesEntityExist(shopData.showcaseVehicle[i].handle) do
+                            SetEntityAsMissionEntity(shopData.showcaseVehicle[i].handle)
+                            DeleteEntity(shopData.showcaseVehicle[i].handle)
+                            Wait(100)
+                        end
+                    end)
                 end
             end
         end
-    end
-    if vehiclePreview then
-        SetEntityAsMissionEntity(vehiclePreview)
-        _deleteVehicle(vehiclePreview)
-		vehiclePreview = nil
     end
 
     lib.closeAlertDialog()
     lib.hideTextUI()
 
     SetEntityVisible(cache.ped, true)
+
+    if vehiclePreview then
+        SetEntityAsMissionEntity(vehiclePreview)
+        _deleteVehicle(vehiclePreview)
+    end
+
+    while DoesEntityExist(vehiclePreview) do
+        SetEntityAsMissionEntity(vehiclePreview)
+        DeleteEntity(vehiclePreview)
+        Wait(10)
+    end
+
+    vehiclePreview = nil
+
+
 end)

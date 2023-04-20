@@ -33,5 +33,7 @@
     "seats": "Number of seats",
     "plate": "number plate",
     "license": "You are not allowed to purchase this type of vehicle",
-    "colorize_vehicle": "Choose your color"
+    "colorize_vehicle": "Choose your color",
+    "primary_color_desc": "Upravit primární barvu vozidla",
+    "secondary_color_desc": "Upravit sekundární barvu vozidla"
 }
