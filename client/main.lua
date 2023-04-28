@@ -389,26 +389,28 @@ local function mainThread()
                 end
 
                 for i=1, #shopData.showcaseVehicle do
-                    local ModelHash = shopData.showcaseVehicle[i].vehicleModel
-                    if not IsModelInCdimage(ModelHash) then return end
-                    RequestModel(ModelHash)
-                    while not HasModelLoaded(ModelHash) do
-                        Wait(0)
-                    end
+                    if shopData.showcaseVehicle[i].handle then
+                        local ModelHash = shopData.showcaseVehicle[i].vehicleModel
+                        if not IsModelInCdimage(ModelHash) then return end
+                        RequestModel(ModelHash)
+                        while not HasModelLoaded(ModelHash) do
+                            Wait(0)
+                        end
 
-                    shopData.showcaseVehicle[i].handle = CreateVehicle(ModelHash, shopData.showcaseVehicle[i].coords.xyz, shopData.showcaseVehicle[i].coords.w, false, false)
-                    SetEntityAsMissionEntity(shopData.showcaseVehicle[i].handle)
-                    SetVehicleDoorsLocked(shopData.showcaseVehicle[i].handle, 2)
-                    SetVehicleUndriveable(shopData.showcaseVehicle[i].handle, true)
-                    SetVehicleDoorsLockedForAllPlayers(shopData.showcaseVehicle[i].handle, true)
-                    SetVehicleDirtLevel(shopData.showcaseVehicle[i].handle, 0)
-                    SetVehicleNumberPlateText(shopData.showcaseVehicle[i].handle, ('SHWCS%s'):format(i))
-                    SetVehicleWindowTint(shopData.showcaseVehicle[i].handle, 3)
-                    SetEntityInvincible(shopData.showcaseVehicle[i].handle, true)
-                    SetVehicleDirtLevel(shopData.showcaseVehicle[i].handle, 0.0)
-                    SetVehicleOnGroundProperly(shopData.showcaseVehicle[i].handle)
-                    FreezeEntityPosition(shopData.showcaseVehicle[i].handle, true)
-                    SetVehicleCustomPrimaryColour(shopData.showcaseVehicle[i].handle, shopData.showcaseVehicle[i].color[1] or 255, shopData.showcaseVehicle[i].color[2] or 0, shopData.showcaseVehicle[i].color[3] or 0)
+                        shopData.showcaseVehicle[i].handle = CreateVehicle(ModelHash, shopData.showcaseVehicle[i].coords.xyz, shopData.showcaseVehicle[i].coords.w, false, false)
+                        SetEntityAsMissionEntity(shopData.showcaseVehicle[i].handle)
+                        SetVehicleDoorsLocked(shopData.showcaseVehicle[i].handle, 2)
+                        SetVehicleUndriveable(shopData.showcaseVehicle[i].handle, true)
+                        SetVehicleDoorsLockedForAllPlayers(shopData.showcaseVehicle[i].handle, true)
+                        SetVehicleDirtLevel(shopData.showcaseVehicle[i].handle, 0)
+                        SetVehicleNumberPlateText(shopData.showcaseVehicle[i].handle, ('SHWCS%s'):format(i))
+                        SetVehicleWindowTint(shopData.showcaseVehicle[i].handle, 3)
+                        SetEntityInvincible(shopData.showcaseVehicle[i].handle, true)
+                        SetVehicleDirtLevel(shopData.showcaseVehicle[i].handle, 0.0)
+                        SetVehicleOnGroundProperly(shopData.showcaseVehicle[i].handle)
+                        FreezeEntityPosition(shopData.showcaseVehicle[i].handle, true)
+                        SetVehicleCustomPrimaryColour(shopData.showcaseVehicle[i].handle, shopData.showcaseVehicle[i].color[1] or 255, shopData.showcaseVehicle[i].color[2] or 0, shopData.showcaseVehicle[i].color[3] or 0)
+                    end
                 end
                 shopData.npcData.npc = createNpc(shopData.npcData.model, shopData.npcData.position)
                 
