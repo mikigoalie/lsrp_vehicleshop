@@ -65,6 +65,14 @@ local function _spawnLocalVehicle(_shopIndex, _selected, _scrollIndex)
     SetVehicleHandbrake(vehiclePreview, true)
     SetVehicleInteriorlight(vehiclePreview, true)
     FreezeEntityPosition(vehiclePreview, true)
+
+    if GetVehicleClass(vehiclePreview) == 14 then
+        SetBoatAnchor(vehiclePreview, true)
+    end
+
+    if GetVehicleClass(vehiclePreview) == 15 or GetVehicleClass(vehiclePreview) == 16 then
+        SetHeliMainRotorHealth(vehiclePreview, 0)
+    end
 end
 
 
@@ -388,33 +396,37 @@ local function mainThread()
                     goto continue
                 end
 
-                for i=1, #shopData.showcaseVehicle do
-                    if shopData.showcaseVehicle[i].handle then
-                        local ModelHash = shopData.showcaseVehicle[i].vehicleModel
-                        if not IsModelInCdimage(ModelHash) then return end
-                        RequestModel(ModelHash)
-                        while not HasModelLoaded(ModelHash) do
-                            Wait(0)
-                        end
-
-                        shopData.showcaseVehicle[i].handle = CreateVehicle(ModelHash, shopData.showcaseVehicle[i].coords.xyz, shopData.showcaseVehicle[i].coords.w, false, false)
-                        SetEntityAsMissionEntity(shopData.showcaseVehicle[i].handle)
-                        SetVehicleDoorsLocked(shopData.showcaseVehicle[i].handle, 2)
-                        SetVehicleUndriveable(shopData.showcaseVehicle[i].handle, true)
-                        SetVehicleDoorsLockedForAllPlayers(shopData.showcaseVehicle[i].handle, true)
-                        SetVehicleDirtLevel(shopData.showcaseVehicle[i].handle, 0)
-                        SetVehicleNumberPlateText(shopData.showcaseVehicle[i].handle, ('SHWCS%s'):format(i))
-                        SetVehicleWindowTint(shopData.showcaseVehicle[i].handle, 3)
-                        SetEntityInvincible(shopData.showcaseVehicle[i].handle, true)
-                        SetVehicleDirtLevel(shopData.showcaseVehicle[i].handle, 0.0)
-                        SetVehicleOnGroundProperly(shopData.showcaseVehicle[i].handle)
-                        FreezeEntityPosition(shopData.showcaseVehicle[i].handle, true)
-                        SetVehicleCustomPrimaryColour(shopData.showcaseVehicle[i].handle, shopData.showcaseVehicle[i].color[1] or 255, shopData.showcaseVehicle[i].color[2] or 0, shopData.showcaseVehicle[i].color[3] or 0)
-                    end
+                if not shopData.showcaseVehicle then
+                    goto skip_showcase
                 end
+
+                for i=1, #shopData.showcaseVehicle do
+                    local ModelHash = shopData.showcaseVehicle[i].vehicleModel
+                    if not IsModelInCdimage(ModelHash) then return end
+                    RequestModel(ModelHash)
+                    while not HasModelLoaded(ModelHash) do
+                        Wait(0)
+                    end
+
+                    shopData.showcaseVehicle[i].handle = CreateVehicle(ModelHash, shopData.showcaseVehicle[i].coords.xyz, shopData.showcaseVehicle[i].coords.w, false, false)
+                    SetEntityAsMissionEntity(shopData.showcaseVehicle[i].handle)
+                    SetVehicleDoorsLocked(shopData.showcaseVehicle[i].handle, 2)
+                    SetVehicleUndriveable(shopData.showcaseVehicle[i].handle, true)
+                    SetVehicleDoorsLockedForAllPlayers(shopData.showcaseVehicle[i].handle, true)
+                    SetVehicleDirtLevel(shopData.showcaseVehicle[i].handle, 0)
+                    SetVehicleNumberPlateText(shopData.showcaseVehicle[i].handle, ('SHWCS%s'):format(i))
+                    SetVehicleWindowTint(shopData.showcaseVehicle[i].handle, 3)
+                    SetEntityInvincible(shopData.showcaseVehicle[i].handle, true)
+                    SetVehicleDirtLevel(shopData.showcaseVehicle[i].handle, 0.0)
+                    SetVehicleOnGroundProperly(shopData.showcaseVehicle[i].handle)
+                    FreezeEntityPosition(shopData.showcaseVehicle[i].handle, true)
+                    SetVehicleCustomPrimaryColour(shopData.showcaseVehicle[i].handle, shopData.showcaseVehicle[i].color[1] or 255, shopData.showcaseVehicle[i].color[2] or 0, shopData.showcaseVehicle[i].color[3] or 0)
+                end
+
+                :: skip_showcase ::
+
                 shopData.npcData.npc = createNpc(shopData.npcData.model, shopData.npcData.position)
                 
-
                 if Config.oxTarget then
                     local npcOptions = {
                         {
@@ -502,7 +514,6 @@ AddEventHandler('esx:onPlayerLogout', function()
 end)
 
 AddEventHandler('onResourceStop', function(resourceName)
-    print('RESOURCE STOP')
     if (GetCurrentResourceName() ~= resourceName) then return end
     
     for _, shopData in pairs(Config.vehicleShops) do

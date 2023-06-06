@@ -1,7 +1,7 @@
 {
     "currencySymbol": "$",
     "priceTag": "Prix: %s ${currencySymbol}",
-    "open_shop": "Concessionnaire (**%s**) ouvert",
+    "open_shop": "Concessionnaire ouvert **%s**",
     "compacts": "Compacts",
     "coupes": "Coupé",
     "muscles": "Musclée",
@@ -32,8 +32,5 @@
     "est_speed": "Vitesse estimée",
     "seats": "Nombre de places",
     "plate": "Plaque d'immatriculation",
-    "license": "Vous devez posséder une license pour acheter ce véhicule",
-    "colorize_vehicle": "Choisissez votre couleur",
-    "primary_color_desc": "Ajuster la couleur primaire du véhicule",
-    "secondary_color_desc": "Modifier la couleur secondaire du véhicule"
+    "license": "You are not allowed to purchase this type of vehicle"
 }

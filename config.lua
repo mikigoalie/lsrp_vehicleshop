@@ -53,6 +53,17 @@ Config.vehicleShops = {
         npcData = {model = joaat('A_M_M_HasJew_01'), position = vec4(-331.8239, -2792.7698, 4.0002, 90.6536)},
         license = 'flight'
     },
+    {
+        shopLabel = 'Elitás Travel',
+        shopIcon = 'fa-solid fa-plane-departure',
+        shopCoords = vec3(1746.7318, 3296.3875, 41.1424), 
+        previewCoords = vec4(1728.4298, 3313.7102, 41.2235, 195.8193), 
+        vehicleSpawnCoords = vec4(1770.8486, 3238.9597, 42.1628, 32.3031),
+        vehicleList = 'planes',
+        blipData = {color = 5, sprite = 755, scale = 0.8},
+        npcData = {model = joaat('A_M_M_HasJew_01'), position = vec4(1746.7318, 3296.3875, 40.1424, 166.0)},
+        license = 'flight'
+    },
 }
 
 Config.vehicleList = {
@@ -245,9 +256,9 @@ Config.vehicleList = {
        }},
     },
     ['planes'] = {
-        {label = 'Bikes', dbData = 'aircraft', values = {
-            {label = 'Adder', vehicleModel = joaat('adder'), vehiclePrice = 1000, description = vehiclePrice}, 
-            {label = 'Rhinehart', vehicleModel = joaat('rhinehart'), vehiclePrice = 1000, description = vehiclePrice}, 
+        {label = 'Helikoptéry', defaultIndex = 2, dbData = 'plane', values = {
+            {label = 'havok', vehicleModel = joaat('havok'), vehiclePrice = 1000, description = vehiclePrice}, 
+            {label = 'nokota', vehicleModel = joaat('nokota'), vehiclePrice = 1000, description = vehiclePrice}, 
         }},
     },
 
