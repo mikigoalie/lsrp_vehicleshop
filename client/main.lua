@@ -101,7 +101,7 @@ local function proceedPayment(useBank, _shopIndex, _selected, _secondary)
     end
 
 	if success then
-		local vehicleAdded, vehiclePlate, spotTaken, netId = lib.callback.await('lsrp_vehicleShop:server:addVehicle', 2000, ESX.Game.GetVehicleProperties(vehiclePreview), #lib.getNearbyVehicles(Config.vehicleShops[_shopIndex].vehicleSpawnCoords.xyz, 3, true), _shopIndex, _selected, _secondary)
+		local vehicleAdded, vehiclePlate, spotTaken, netId = lib.callback.await('lsrp_vehicleShop:server:addVehicle', 500, lib.getVehicleProperties(vehiclePreview), #lib.getNearbyVehicles(Config.vehicleShops[_shopIndex].vehicleSpawnCoords.xyz, 3, true), _shopIndex, _selected, _secondary)
 		if vehicleAdded then
             local data = Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_secondary]
 			DoScreenFadeOut(500)
@@ -243,7 +243,6 @@ local function openMenu(_shopIndex)
 
     local options = {}
     local _vehicleClassCFG = Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList]
-
 
     for classIndex, classInfo in pairs(_vehicleClassCFG) do
         for i=1, #classInfo.values do
@@ -452,6 +451,7 @@ local function mainThread()
         Wait(1500)
     end
 end
+
 if ESX.IsPlayerLoaded() then
     CreateThread(mainThread)
     playerLoaded = true
