@@ -9,17 +9,31 @@ local lastCoords = nil
 local lastIndex = nil
 local loadingVehicle = false
 local _inv = exports.ox_inventory
-
+local vehicleInvData = {}
 
 local function hex2rgb(hex)
     local hex = hex:gsub("#","")
     return tonumber("0x"..hex:sub(1,2)), tonumber("0x"..hex:sub(3,4)), tonumber("0x"..hex:sub(5,6))
 end
 
-local function groupDigs(price)
-	local left,num,right = string.match(price,'^([^%d]*%d)(%d*)(.-)$')
+local function loadData()
+    local file = "data/vehicles.lua"
+    local import = LoadResourceFile("ox_inventory", file)
+    local chunk = assert(load(import, ('@@ox_inventory/%s'):format(file)))
 
-	return left..(num:reverse():gsub('(%d%d%d)','%1' .. ','):reverse())..right
+    if not chunk then
+        return
+    end
+
+    local vehData = chunk()
+
+    vehicleInvData.trunk = vehData.trunk
+    vehicleInvData.glovebox = vehData.glovebox
+end
+
+local function groupDigs(number, separator)
+    local left,num,right = string.match(number,'^([^%d]*%d)(%d*)(.-)$')
+    return left..(num:reverse():gsub('(%d%d%d)','%1' .. (seperator or ',')):reverse())..right
 end
 
 local function notification(title, msg, _type)
@@ -137,22 +151,29 @@ end
 local function openVehicleSubmenu(_shopIndex, _selected, _scrollIndex)
     local subMenu = {_shopIndex, _selected, _scrollIndex}
     local vData = Config.vehicleList[Config.vehicleShops[subMenu[1]].vehicleList][subMenu[2]].values[subMenu[3]]
+    local vClass = GetVehicleClass(vehiclePreview)
     local options = {
-        {close = false, icon = 'info', label = locale('vehicle_info'), values = {
+        {close = false, icon = 'info', label = locale('vehicle_info'), 
+        values = {
+            {
+                label = locale('trunk'),
+                description = ('%s %s - %s kg'):format(vehicleInvData.trunk[vClass][1], locale('slots'), groupDigs(vehicleInvData.trunk[vClass][2], '.')),
+            },
+            {
+                label = locale('glovebox'),
+                description = ('%s %s - %s kg'):format(vehicleInvData.glovebox[vClass][1], locale('slots'), groupDigs(vehicleInvData.glovebox[vClass][2], '.')),
+            },
             {
                 label = locale('est_speed'),
                 description = ('%.2f kmh'):format(GetVehicleModelEstimatedMaxSpeed(vData.vehicleModel) * 3.6),
-            
             },
             {
                 label = locale('seats'),
                 description = GetVehicleModelNumberOfSeats(vData.vehicleModel),
-            
             },
             {
                 label = locale('plate'),
                 description = GetVehicleNumberPlateText(vehiclePreview),
-            
             },
         }}  
     }
@@ -347,6 +368,8 @@ end
 
 
 local function mainThread()
+    loadData()
+
     for _, shopData in pairs(Config.vehicleShops) do
         shopData.blipData.blip = AddBlipForCoord(shopData.shopCoords.xyz)
         local blip = shopData.blipData.blip 

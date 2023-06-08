@@ -9,7 +9,7 @@ Hey, the script is free to use, however if you would like to support my work, fe
 
 ## Preview
 
-[PREVIEW](https://streamable.com/8dofdm)
+https://streamable.com/yor549
 
 ## Authors
 
