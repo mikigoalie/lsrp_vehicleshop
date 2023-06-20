@@ -31,17 +31,17 @@ lib.callback.register('lsrp_vehicleShop:server:payment', function(source, useBan
         return false
     end
 
+
     local vehiclePrice = Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_secondary].vehiclePrice
 
     if not tonumber(vehiclePrice) or vehiclePrice < 1000 then return false end
 
     if Config.vehicleShops[_shopIndex].license then
-        local hasLicense = MySQL.single.await('SELECT type FROM user_licenses WHERE owner = ? AND type = ?', {xPlayer.identifier, Config.vehicleShops[_shopIndex].license})
+        local hasLicense = MySQL.single.await('SELECT type FROM user_licenses WHERE owner = ? AND type = ?', {ESX.GetPlayerFromId(source).identifier, Config.vehicleShops[_shopIndex].license})
         if not hasLicense then
             return 'license'
         end
     end
-
 
     if not useBank then
         local money = _inv:GetItem(source, 'money', nil, true)
@@ -51,7 +51,6 @@ lib.callback.register('lsrp_vehicleShop:server:payment', function(source, useBan
 
         return _inv:RemoveItem(source, 'money', vehiclePrice)
     end
-
 
     local bankMoney = Config.usePEFCL and exports.pefcl:getDefaultAccountBalance(source).data or getBankMoney(source)
     if bankMoney < vehiclePrice then

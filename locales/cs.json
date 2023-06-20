@@ -38,6 +38,9 @@
     "secondary_color_desc": "Upravit sekundární barvu vozidla",
     "trunk": "Kufr",
     "glovebox": "Přihrádka",
-    "slots": "slotů"
+    "slots": "slotů",
+
+    "notrunk": "Bez kufru",
+    "noglove": "Bez přihrádky"
 
 }

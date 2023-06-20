@@ -102,6 +102,7 @@ local function proceedPayment(useBank, _shopIndex, _selected, _secondary)
     end
 
 	local success = lib.callback.await('lsrp_vehicleShop:server:payment', false, useBank, _shopIndex, _selected, _secondary)
+    print(success)
     if not success then
         notification(Config.vehicleShops[_shopIndex]?.shopLabel or '[_ERROR_]', locale('transaction_error'), 'error')
         lib.showMenu('vehicleshop')
@@ -157,11 +158,11 @@ local function openVehicleSubmenu(_shopIndex, _selected, _scrollIndex)
         values = {
             {
                 label = locale('trunk'),
-                description = ('%s %s - %s kg'):format(vehicleInvData.trunk[vClass][1], locale('slots'), groupDigs(vehicleInvData.trunk[vClass][2], '.')),
+                description = vehicleInvData.trunk[vClass] and ('%s %s - %s kg'):format(vehicleInvData.trunk[vClass][1], locale('slots'), groupDigs(vehicleInvData.trunk[vClass][2], '.')) or locale('notrunk'),
             },
             {
                 label = locale('glovebox'),
-                description = ('%s %s - %s kg'):format(vehicleInvData.glovebox[vClass][1], locale('slots'), groupDigs(vehicleInvData.glovebox[vClass][2], '.')),
+                description = vehicleInvData.glovebox[vClass] and ('%s %s - %s kg'):format(vehicleInvData.glovebox[vClass][1], locale('slots'), groupDigs(vehicleInvData.glovebox[vClass][2], '.')) or locale('noglove'),
             },
             {
                 label = locale('est_speed'),

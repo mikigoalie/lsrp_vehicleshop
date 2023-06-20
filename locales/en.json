@@ -38,6 +38,8 @@
     "secondary_color_desc": "Upravit sekundární barvu vozidla",
     "trunk": "Kufr",
     "glovebox": "Přihrádka",
-    "slots": "slotů"
+    "slots": "slotů",
+    "notrunk": "This vehicle does not have a trunk",
+    "noglove": "This vehicle does not have a glovebox"
 
 }

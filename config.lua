@@ -36,10 +36,10 @@ Config.vehicleShops = {
         blipData = {color = 5, sprite = 810, scale = 0.8},
         npcData = {model = joaat('IG_Avon'), position = vec4(-30.7224, -1096.5004, 26.2744, 68.4467)},
         showcaseVehicle = {
-            {vehicleModel = joaat('kanjo'), coords = vec4(-49.8157, -1083.6610, 26.7387, 199.9693), color = {255, 128, 32}},
-            {vehicleModel = joaat('tenf2'), coords = vec4(-54.7802, -1096.9150, 26.6577, 297.9555), color = {255, 0, 32}},
-            {vehicleModel = joaat('rhinehart'), coords = vec4(-42.3705, -1101.3069, 27.0423, 350.3064), color = {255, 0, 32}},
-            {vehicleModel = joaat('ztype'), coords = vec4(-36.6870, -1093.3662, 26.7255, 153.1380), color = {255, 0, 32}},
+            {vehicleModel = joaat('kanjo'), coords = vec4(-49.8157, -1083.6610, 26.23, 199.9693), color = {255, 128, 32}},
+            {vehicleModel = joaat('tenf2'), coords = vec4(-54.7802, -1096.9150, 26.1577, 297.9555), color = {255, 0, 32}},
+            {vehicleModel = joaat('rhinehart'), coords = vec4(-42.3705, -1101.3069, 26.5423, 350.3064), color = {255, 0, 32}},
+            {vehicleModel = joaat('ztype'), coords = vec4(-36.6870, -1093.3662, 26.2255, 153.1380), color = {255, 0, 32}},
         }
     },
     {
