@@ -9,6 +9,7 @@ local lastCoords = nil
 local lastIndex = nil
 local loadingVehicle = false
 local _inv = exports.ox_inventory
+local playerjob = nil
 local vehicleInvData = {}
 
 local function hex2rgb(hex)
@@ -186,25 +187,25 @@ local function openVehicleSubmenu(_shopIndex, _selected, _scrollIndex)
     if Config.vehicleColors.secondary == true then
         options[#options+1] = {close = false, icon = 'fill-drip', label = locale('secondary_color'), description = locale('secondary_color_desc'), menuArg = 'secondary'}
     end
-
-    options[#options+1] = {
-        label = 'Platba',
-        icon = 'credit-card',
-        menuArg = 'payment',
-        values = {
-            {
-                label = locale('cash'), 
-                description = locale('pay_in_cash', vData.vehiclePrice),
-                method = 'cash'
-            }, 
-            {
-                label = locale('bank'), 
-                description = locale('pay_in_bank', vData.vehiclePrice),
-                method = 'bank'
-            }
-        },
-    }
-    
+    if shopData.job == playerjob or false then
+        options[#options + 1] = {
+            label = 'Platba',
+            icon = 'credit-card',
+            menuArg = 'payment',
+            values = {
+                {
+                    label = locale('cash'),
+                    description = locale('pay_in_cash', vData.vehiclePrice),
+                    method = 'cash'
+                },
+                {
+                    label = locale('bank'),
+                    description = locale('pay_in_bank', vData.vehiclePrice),
+                    method = 'bank'
+                }
+            },
+        }
+    end
     lib.registerMenu({
         id = 'openVehicleSubmenu',
         title = vData.label,
@@ -590,3 +591,14 @@ AddEventHandler('onResourceStop', function(resourceName)
 
 
 end)
+
+
+AddEventHandler('esx:playerLoaded', function(playerData)
+    playerjob = playerData.job.name
+end)
+
+RegisterNetEvent('esx:setJob')
+AddEventHandler('esx:setJob', function(job)
+    playerjob = job.name
+end)
+
