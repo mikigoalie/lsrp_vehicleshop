@@ -591,3 +591,14 @@ AddEventHandler('onResourceStop', function(resourceName)
 
 
 end)
+
+
+AddEventHandler('esx:playerLoaded', function(playerData)
+    playerjob = playerData.job.name
+end)
+
+RegisterNetEvent('esx:setJob')
+AddEventHandler('esx:setJob', function(job)
+    playerjob = job.name
+end)
+
