@@ -8,19 +8,33 @@ local shopPoint = {}
 local lastCoords = nil
 local lastIndex = nil
 local loadingVehicle = false
-local playerjob = nil
 local _inv = exports.ox_inventory
-
+local playerjob = nil
+local vehicleInvData = {}
 
 local function hex2rgb(hex)
     local hex = hex:gsub("#","")
     return tonumber("0x"..hex:sub(1,2)), tonumber("0x"..hex:sub(3,4)), tonumber("0x"..hex:sub(5,6))
 end
 
-local function groupDigs(price)
-	local left,num,right = string.match(price,'^([^%d]*%d)(%d*)(.-)$')
+local function loadData()
+    local file = "data/vehicles.lua"
+    local import = LoadResourceFile("ox_inventory", file)
+    local chunk = assert(load(import, ('@@ox_inventory/%s'):format(file)))
 
-	return left..(num:reverse():gsub('(%d%d%d)','%1' .. ','):reverse())..right
+    if not chunk then
+        return
+    end
+
+    local vehData = chunk()
+
+    vehicleInvData.trunk = vehData.trunk
+    vehicleInvData.glovebox = vehData.glovebox
+end
+
+local function groupDigs(number, separator)
+    local left,num,right = string.match(number,'^([^%d]*%d)(%d*)(.-)$')
+    return left..(num:reverse():gsub('(%d%d%d)','%1' .. (seperator or ',')):reverse())..right
 end
 
 local function notification(title, msg, _type)
@@ -66,6 +80,14 @@ local function _spawnLocalVehicle(_shopIndex, _selected, _scrollIndex)
     SetVehicleHandbrake(vehiclePreview, true)
     SetVehicleInteriorlight(vehiclePreview, true)
     FreezeEntityPosition(vehiclePreview, true)
+
+    if GetVehicleClass(vehiclePreview) == 14 then
+        SetBoatAnchor(vehiclePreview, true)
+    end
+
+    if GetVehicleClass(vehiclePreview) == 15 or GetVehicleClass(vehiclePreview) == 16 then
+        SetHeliMainRotorHealth(vehiclePreview, 0)
+    end
 end
 
 
@@ -81,6 +103,7 @@ local function proceedPayment(useBank, _shopIndex, _selected, _secondary)
     end
 
 	local success = lib.callback.await('lsrp_vehicleShop:server:payment', false, useBank, _shopIndex, _selected, _secondary)
+    print(success)
     if not success then
         notification(Config.vehicleShops[_shopIndex]?.shopLabel or '[_ERROR_]', locale('transaction_error'), 'error')
         lib.showMenu('vehicleshop')
@@ -94,7 +117,7 @@ local function proceedPayment(useBank, _shopIndex, _selected, _secondary)
     end
 
 	if success then
-		local vehicleAdded, vehiclePlate, spotTaken, netId = lib.callback.await('lsrp_vehicleShop:server:addVehicle', 2000, ESX.Game.GetVehicleProperties(vehiclePreview), #lib.getNearbyVehicles(Config.vehicleShops[_shopIndex].vehicleSpawnCoords.xyz, 3, true), _shopIndex, _selected, _secondary)
+		local vehicleAdded, vehiclePlate, spotTaken, netId = lib.callback.await('lsrp_vehicleShop:server:addVehicle', 500, lib.getVehicleProperties(vehiclePreview), #lib.getNearbyVehicles(Config.vehicleShops[_shopIndex].vehicleSpawnCoords.xyz, 3, true), _shopIndex, _selected, _secondary)
 		if vehicleAdded then
             local data = Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_secondary]
 			DoScreenFadeOut(500)
@@ -130,22 +153,29 @@ end
 local function openVehicleSubmenu(_shopIndex, _selected, _scrollIndex)
     local subMenu = {_shopIndex, _selected, _scrollIndex}
     local vData = Config.vehicleList[Config.vehicleShops[subMenu[1]].vehicleList][subMenu[2]].values[subMenu[3]]
+    local vClass = GetVehicleClass(vehiclePreview)
     local options = {
-        {close = false, icon = 'info', label = locale('vehicle_info'), values = {
+        {close = false, icon = 'info', label = locale('vehicle_info'), 
+        values = {
+            {
+                label = locale('trunk'),
+                description = vehicleInvData.trunk[vClass] and ('%s %s - %s kg'):format(vehicleInvData.trunk[vClass][1], locale('slots'), groupDigs(vehicleInvData.trunk[vClass][2], '.')) or locale('notrunk'),
+            },
+            {
+                label = locale('glovebox'),
+                description = vehicleInvData.glovebox[vClass] and ('%s %s - %s kg'):format(vehicleInvData.glovebox[vClass][1], locale('slots'), groupDigs(vehicleInvData.glovebox[vClass][2], '.')) or locale('noglove'),
+            },
             {
                 label = locale('est_speed'),
                 description = ('%.2f kmh'):format(GetVehicleModelEstimatedMaxSpeed(vData.vehicleModel) * 3.6),
-            
             },
             {
                 label = locale('seats'),
                 description = GetVehicleModelNumberOfSeats(vData.vehicleModel),
-            
             },
             {
                 label = locale('plate'),
                 description = GetVehicleNumberPlateText(vehiclePreview),
-            
             },
         }}  
     }
@@ -157,7 +187,7 @@ local function openVehicleSubmenu(_shopIndex, _selected, _scrollIndex)
     if Config.vehicleColors.secondary == true then
         options[#options+1] = {close = false, icon = 'fill-drip', label = locale('secondary_color'), description = locale('secondary_color_desc'), menuArg = 'secondary'}
     end
-    if playerjob == shopData.job or false then
+    if shopData.job == playerjob or false then
         options[#options + 1] = {
             label = 'Platba',
             icon = 'credit-card',
@@ -236,7 +266,6 @@ local function openMenu(_shopIndex)
 
     local options = {}
     local _vehicleClassCFG = Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList]
-
 
     for classIndex, classInfo in pairs(_vehicleClassCFG) do
         for i=1, #classInfo.values do
@@ -341,6 +370,8 @@ end
 
 
 local function mainThread()
+    loadData()
+
     for _, shopData in pairs(Config.vehicleShops) do
         shopData.blipData.blip = AddBlipForCoord(shopData.shopCoords.xyz)
         local blip = shopData.blipData.blip 
@@ -389,6 +420,10 @@ local function mainThread()
                     goto continue
                 end
 
+                if not shopData.showcaseVehicle then
+                    goto skip_showcase
+                end
+
                 for i=1, #shopData.showcaseVehicle do
                     local ModelHash = shopData.showcaseVehicle[i].vehicleModel
                     if not IsModelInCdimage(ModelHash) then return end
@@ -411,9 +446,11 @@ local function mainThread()
                     FreezeEntityPosition(shopData.showcaseVehicle[i].handle, true)
                     SetVehicleCustomPrimaryColour(shopData.showcaseVehicle[i].handle, shopData.showcaseVehicle[i].color[1] or 255, shopData.showcaseVehicle[i].color[2] or 0, shopData.showcaseVehicle[i].color[3] or 0)
                 end
+
+                :: skip_showcase ::
+
                 shopData.npcData.npc = createNpc(shopData.npcData.model, shopData.npcData.position)
                 
-
                 if Config.oxTarget then
                     local npcOptions = {
                         {
@@ -439,6 +476,7 @@ local function mainThread()
         Wait(1500)
     end
 end
+
 if ESX.IsPlayerLoaded() then
     CreateThread(mainThread)
     playerLoaded = true
@@ -501,7 +539,6 @@ AddEventHandler('esx:onPlayerLogout', function()
 end)
 
 AddEventHandler('onResourceStop', function(resourceName)
-    print('RESOURCE STOP')
     if (GetCurrentResourceName() ~= resourceName) then return end
     
     for _, shopData in pairs(Config.vehicleShops) do
@@ -554,14 +591,3 @@ AddEventHandler('onResourceStop', function(resourceName)
 
 
 end)
-
-
-AddEventHandler('esx:playerLoaded', function(playerData)
-    playerjob = playerData.job.name
-end)
-
-RegisterNetEvent('esx:setJob')
-AddEventHandler('esx:setJob', function(job)
-    playerjob = job.name
-end)
-
