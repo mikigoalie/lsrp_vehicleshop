@@ -67,24 +67,23 @@ lib.callback.register('lsrp_vehicleShop:server:payment', function(source, useBan
 
 end)
 
-local function randomChar(characters)
-    local index = math.random(1, #characters)
-    return characters:sub(index, index)
+local randLet = function ()
+    return string.char(math.random(65, 90))
 end
 
-local function generateRandomString()
-    local characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    local digits = "0123456789"
+local randNum = function ()
+    return tostring(math.random(0, 9))
+end
+
+local generateRandomString = function ()
     local randomString = ""
-
+    math.randomseed(os.time())
     for i = 1, 3 do
-        randomString = randomString .. randomChar(characters)
+        randomString = randomString .. randLet()
     end
-
     randomString = randomString .. " "
-
     for i = 1, 3 do
-        randomString = randomString .. randomChar(digits)
+        randomString = randomString .. randNum()
     end
 
     return randomString
