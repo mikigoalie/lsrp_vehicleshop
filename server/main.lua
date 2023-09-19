@@ -67,10 +67,33 @@ lib.callback.register('lsrp_vehicleShop:server:payment', function(source, useBan
 
 end)
 
+local function randomChar(characters)
+    local index = math.random(1, #characters)
+    return characters:sub(index, index)
+end
+
+local function generateRandomString()
+    local characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    local digits = "0123456789"
+    local randomString = ""
+
+    for i = 1, 3 do
+        randomString = randomString .. randomChar(characters)
+    end
+
+    randomString = randomString .. " "
+
+    for i = 1, 3 do
+        randomString = randomString .. randomChar(digits)
+    end
+
+    return randomString
+end
+
 local function getPlate()
     local str = nil
     repeat
-        str = ESX.GetRandomString(8)
+        str = generateRandomString()
         local alreadyExists = MySQL.single.await('SELECT owner FROM owned_vehicles WHERE plate = ?', {str})
     until not alreadyExists?.owner
     return string.upper(str)
@@ -79,8 +102,6 @@ end
 lib.callback.register('lsrp_vehicleShop:server:generateplate', function(source)
     return getPlate()
 end)
-
-
 
 lib.callback.register('lsrp_vehicleShop:server:addVehicle', function(source, vehProperties, vehicleSpot, _shopIndex, _selected, _secondary)
     local xPlayer = ESX.GetPlayerFromId(source)
