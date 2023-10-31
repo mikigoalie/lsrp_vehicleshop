@@ -16,17 +16,6 @@ Config.vehicleColors = {    -- Allow custom RGB Colors for primary and secondary
 
 --[[ Vehicle shops configuration ]]--
 Config.vehicleShops = {
-    --[[
-        shopLabel = This is label of the shop
-        shopCoords = Shop point coords (also for blip)
-        previewCoords = Where will the vehicle spawn? Vec4!
-        vehicleSpawnCoords = When you buy the vehicle, where should it spawn? Vec4! (If not empty, it will be added to the garage)
-        vehicleList = String 'car, boats, airplane' to be compatible with your garages
-        blipData = Example: {color = 5, sprite = 755, scale = 0.8},
-        npcData = Example: {model = joaat('A_M_M_HasJew_01'), position = vec4(-331.8239, -2792.7698, 4.0002, 90.6536)},
-        license = String 'dmv', 'boat' whatever you have for your license system (look in db)
-    --]]
-
     {
         shopLabel = 'Deluxe Motorsport',
         shopIcon = 'fa-solid fa-car',

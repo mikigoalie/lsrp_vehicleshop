@@ -1,13 +1,13 @@
 local function createBlip(data)
-    local blip = AddBlipForCoord(data.coords.xyz)
-    SetBlipSprite(blip, data.sprite)
+    local blip = AddBlipForCoord(data.shopCoords.xyz)
+    SetBlipSprite(blip, data.blipData?.sprite or 810)
     SetBlipDisplay(blip, 4)
-    SetBlipScale(blip, data.scale)
-    SetBlipColour(blip, data.color)
+    SetBlipScale(blip, data.blipData?.scale)
+    SetBlipColour(blip, data.blipData?.color or 2)
     SetBlipSecondaryColour(blip, 255, 0, 0)
     SetBlipAsShortRange(blip, true)
     BeginTextCommandSetBlipName("STRING")
-    AddTextComponentString(data.label)
+    AddTextComponentString(data.shopLabel)
     EndTextCommandSetBlipName(blip)
     return blip
 end
@@ -21,5 +21,4 @@ end
 return {
     createBlip = createBlip,
     removeBlip = removeBlip
-
 }

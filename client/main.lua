@@ -3,6 +3,7 @@ local blipModule = require('client.modules.blip')
 local utils = require('client.modules.utils')
 local notification = require('client.modules.notify')
 local dprint = require('client.modules.debugprint')
+local create_showcase_vehicle = require('client.modules.showcase')
 
 local c = {}
 local vehiclePreview = nil
@@ -349,18 +350,12 @@ local function mainThread()
     loadInventoryData()
 
     for _, shopData in pairs(Config.vehicleShops) do
-        shopData.blipData.blip = blipModule.createBlip({
-            coords = shopData.shopCoords.xyz,
-            sprite = shopData.blipData.sprite,
-            display = 4,
-            scale = shopData.blipData.scale,
-            color = shopData.blipData.color,
-            label = shopData.shopLabel
-        })
+        shopData.blipData.blip = blipModule.createBlip(shopData)
     end
 
     while playerLoaded do
 		local playerCoords = GetEntityCoords(cache.ped)
+
         for idx, shopData in pairs(Config.vehicleShops) do
             if #(playerCoords - shopData.shopCoords) > 200.0 then
                 if shopData.point then
@@ -401,22 +396,7 @@ local function mainThread()
                     if not IsModelInCdimage(showcase_vehicle.vehicleModel) then return end
                     local modelLoaded = lib.requestModel(showcase_vehicle.vehicleModel, 1000)
                     if not modelLoaded then return end
-                    showcase_vehicle.handle = CreateVehicle(showcase_vehicle.vehicleModel, showcase_vehicle.coords.xyz, showcase_vehicle.coords.w, false, false)
-                    SetEntityAsMissionEntity(showcase_vehicle.handle)
-                    SetVehicleDoorsLocked(showcase_vehicle.handle, 2)
-                    SetVehicleUndriveable(showcase_vehicle.handle, true)
-                    SetVehicleDoorsLockedForAllPlayers(showcase_vehicle.handle, true)
-                    SetVehicleNumberPlateText(showcase_vehicle.handle, ('SHWCS%s'):format(i))
-                    SetVehicleWindowTint(showcase_vehicle.handle, 3)
-                    SetEntityInvincible(showcase_vehicle.handle, true)
-                    SetVehicleDirtLevel(showcase_vehicle.handle, 0.0)
-                    FreezeEntityPosition(showcase_vehicle.handle, true)
-                    if showcase_vehicle.color[1] == 'chameleon' then
-                        SetVehicleModKit(showcase_vehicle.handle, 0)
-                        SetVehicleColours(showcase_vehicle.handle, showcase_vehicle.color[2], showcase_vehicle.color[2])
-                    else
-                        SetVehicleCustomPrimaryColour(showcase_vehicle.handle, showcase_vehicle.color[1] or 255, showcase_vehicle.color[2] or 0, showcase_vehicle.color[3] or 0)
-                    end
+                    showcase_vehicle.handle = create_showcase_vehicle(showcase_vehicle, i)
                 end
 
                 :: skip_showcase ::
@@ -461,65 +441,19 @@ AddEventHandler('esx:playerLoaded', function(xPlayer, isNew, skin)
     CreateThread(mainThread)
 end)
 
-AddEventHandler('esx:onPlayerLogout', function()
-    playerLoaded = false
-    for _, shopData in pairs(Config.vehicleShops) do
 
+
+local function onShutDown()
+    lib.closeAlertDialog()
+    lib.hideTextUI()
+
+    for _, shopData in pairs(Config.vehicleShops) do
         blipModule.removeBlip(shopData.blipData.blip)
         
         if shopData.point then
             shopData.point:remove()
             shopData.point = nil
         end
-
-
-        if shopData.npcData.npc then
-            DeletePed(shopData.npcData.npc)
-            shopData.npcData.npc = nil
-        end
-
-        if shopData.showcaseVehicle then
-            for i=1, #shopData.showcaseVehicle do
-                if shopData.showcaseVehicle[i].handle then
-                    while DoesEntityExist(shopData.showcaseVehicle[i].handle) do
-                        SetEntityAsMissionEntity(shopData.showcaseVehicle[i].handle)
-                        DeleteEntity(shopData.showcaseVehicle[i].handle)
-                        Wait(100)
-                    end
-                end
-            end
-        end
-    end
-
-    if vehiclePreview then
-        SetEntityAsMissionEntity(vehiclePreview)
-        _deleteVehicle(vehiclePreview)
-		vehiclePreview = nil
-    end
-
-    while DoesEntityExist(vehiclePreview) do
-        SetEntityAsMissionEntity(vehiclePreview)
-        DeleteEntity(vehiclePreview)
-        Wait(10)
-    end
-
-    lib.closeAlertDialog()
-    lib.hideTextUI()
-
-    SetEntityVisible(cache.ped, true)
-end)
-
-AddEventHandler('onResourceStop', function(resourceName)
-    if (GetCurrentResourceName() ~= resourceName) then return end
-    
-    for _, shopData in pairs(Config.vehicleShops) do
-        blipModule.removeBlip(shopData.blipData.blip)
-
-        if shopData.point then
-            shopData.point:remove()
-            shopData.point = nil
-        end
-
 
         if shopData.npcData.npc then
             DeletePed(shopData.npcData.npc)
@@ -541,25 +475,24 @@ AddEventHandler('onResourceStop', function(resourceName)
         end
     end
 
-    lib.closeAlertDialog()
-    lib.hideTextUI()
-
     SetEntityVisible(cache.ped, true)
 
     if vehiclePreview then
         SetEntityAsMissionEntity(vehiclePreview)
         _deleteVehicle(vehiclePreview)
     end
+end
 
-    while DoesEntityExist(vehiclePreview) do
-        SetEntityAsMissionEntity(vehiclePreview)
-        DeleteEntity(vehiclePreview)
-        Wait(10)
-    end
+AddEventHandler('esx:onPlayerLogout', function()
+    playerLoaded = false
 
-    vehiclePreview = nil
+    onShutDown()
+end)
 
-
+AddEventHandler('onResourceStop', function(resourceName)
+    if (GetCurrentResourceName() ~= resourceName) then return end
+    
+    onShutDown()
 end)
 
 
