@@ -1,6 +1,6 @@
 Config.vehicleList = {
     ['vehicles'] = {
-        {label = locale('compacts'), defaultIndex = 2, dbData = 'car', values = {
+        {label = locale('compacts'), defaultIndex = 2, dbData = 'car', menuColor = "gold", values = {
             {label = 'Club', vehicleModel = joaat('club'), vehiclePrice = 22000},
             {label = 'Weevil', vehicleModel = joaat('weevil'), vehiclePrice = 20000},
             {label = 'Brioso 300', vehicleModel = joaat('brioso2'), vehiclePrice = 18000 },

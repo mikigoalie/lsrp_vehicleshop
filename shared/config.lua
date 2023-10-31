@@ -17,8 +17,9 @@ Config.vehicleColors = {    -- Allow custom RGB Colors for primary and secondary
 --[[ Vehicle shops configuration ]]--
 Config.vehicleShops = {
     {
+        menuIcon = 'fa-solid fa-car',
+        menuColor = "red",
         shopLabel = 'Deluxe Motorsport',
-        shopIcon = 'fa-solid fa-car',
         shopCoords = vec3(-32.7748, -1095.4304, 27.2744), 
         previewCoords = vec4(-47.6072, -1092.1250, 26.7543, 90.0), 
         vehicleSpawnCoords = vec4(-23.6204, -1094.3016, 27.0452, 339.1980),
@@ -35,7 +36,8 @@ Config.vehicleShops = {
 
     {
         shopLabel = 'Premium Deluxe Motorsport',
-        shopIcon = 'fa-solid fa-car',
+        menuIcon = 'fa-solid fa-car',
+        menuColor = "red",
         shopCoords = vec3(-1256.6936, -367.5191, 36.9074), 
         previewCoords = vec4(-1255.8885, -354.4863, 36.6496, 69.0134), 
         vehicleSpawnCoords = vec4(-1234.7506, -352.5141, 36.9216, 348.5213),
@@ -51,7 +53,7 @@ Config.vehicleShops = {
 
     {
         shopLabel = 'Port of LS',
-        shopIcon = 'fa-solid fa-anchor',
+        menuIcon = 'fa-solid fa-anchor',
         shopCoords = vec3(-332.4889, -2792.6875, 5.0002), 
         previewCoords = vec4(-315.2095, -2811.3174, -1.4862, 236.3378), 
         vehicleSpawnCoords = vec4(-295.9564, -2763.7126, -1.0662, 73.7579),
@@ -62,7 +64,7 @@ Config.vehicleShops = {
     },
     {
         shopLabel = 'Elitás Travel',
-        shopIcon = 'fa-solid fa-plane-departure',
+        menuIcon = 'fa-solid fa-plane-departure',
         shopCoords = vec3(1746.7318, 3296.3875, 41.1424), 
         previewCoords = vec4(1728.4298, 3313.7102, 41.2235, 195.8193), 
         vehicleSpawnCoords = vec4(1770.8486, 3238.9597, 42.1628, 32.3031),

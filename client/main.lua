@@ -2,15 +2,12 @@ local npc = require('client.modules.npc')
 local blipModule = require('client.modules.blip')
 local utils = require('client.modules.utils')
 local notification = require('client.modules.notify')
-local dprint = require('client.modules.debugprint')
 local create_showcase_vehicle = require('client.modules.showcase')
 
-local c = {}
 local vehiclePreview = nil
 local playerLoaded = false
 local _playerInShop = false
 local shopPoint = {}
-local lastCoords = nil
 local lastIndex = nil
 local loadingVehicle = false
 local _inv = exports.ox_inventory
@@ -107,19 +104,16 @@ local function proceedPayment(useBank, _shopIndex, _selected, _secondary)
 		local vehicleAdded, vehiclePlate, spotTaken, netId = lib.callback.await('lsrp_vehicleShop:server:addVehicle', 500, lib.getVehicleProperties(vehiclePreview), #lib.getNearbyVehicles(Config.vehicleShops[_shopIndex].vehicleSpawnCoords.xyz, 3, true), _shopIndex, _selected, _secondary, useBank)
 		if vehicleAdded then
             local data = Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_secondary]
-			DoScreenFadeOut(500)
-			while not IsScreenFadedOut() do
-				Wait(10)
-			end
+            utils.fadeOut(500)
             if vehiclePreview then
                 _deleteVehicle(vehiclePreview)
             end
 			PlaySoundFrontend(-1, 'Pre_Screen_Stinger', 'DLC_HEISTS_FAILED_SCREEN_SOUNDS', 0)
             notification(Config.vehicleShops[_shopIndex]?.shopLabel, locale('success_bought', Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_secondary].label, vehiclePlate), 'success')
 			Wait(1000)
-            SetEntityCoords(cache.ped, lastCoords.xyz)
+            utils.teleportPlayerToLastPos()
             SetEntityVisible(cache.ped, true)
-			DoScreenFadeIn(1000)
+            utils.fadeIn(1000)
             notification(Config.vehicleShops[_shopIndex]?.shopLabel or '[_ERROR_]', not spotTaken and locale('vehicle_pick_up', data.label, vehiclePlate) or locale('added_to_garage', data.label, vehiclePlate), 'success')
 			
             for i = -1, 0 do
@@ -253,7 +247,7 @@ end
 
 local function openMenu(_shopIndex)
     local hintShown = false
-    lastCoords = GetEntityCoords(cache.ped)
+    utils.setLastCoords()
 
     local options = {}
     local _vehicleClassCFG = Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList]
@@ -267,6 +261,7 @@ local function openMenu(_shopIndex)
             label = locale(classInfo.label),
             description = classInfo.description,
             icon = classInfo.icon or 'car',
+            iconColor = classInfo.menuColor or "",
             arrow = true,
             values = classInfo.values,
             classIndex = classIndex,
@@ -289,18 +284,15 @@ local function openMenu(_shopIndex)
             _spawnLocalVehicle(_shopIndex, selected, scrollIndex)
         end,
         onClose = function(keyPressed)
-            DoScreenFadeOut(500)
-            while not IsScreenFadedOut() do
-                Wait(50)
-            end
+            utils.fadeOut(500)
+            utils.teleportPlayerToLastPos()
             while DoesEntityExist(vehiclePreview) do
                 _deleteVehicle()
             end
-            SetEntityCoords(cache.ped, lastCoords)
             Wait(500)
             SetEntityVisible(cache.ped, true)
-            DoScreenFadeIn(1000)
-            Wait(1000)
+            utils.fadeIn(1000)
+            Wait(500)
 
         end,
         options = options
@@ -314,15 +306,12 @@ local function openMenu(_shopIndex)
         openVehicleSubmenu(_shopIndex, selected, scrollIndex)
     end)
 
-    DoScreenFadeOut(500)
-    while not IsScreenFadedOut() do
-        Wait(50)
-    end
+    utils.fadeOut(500)
 
     SetEntityVisible(cache.ped, false)
     SetEntityCoords(cache.ped, Config.vehicleShops[_shopIndex].previewCoords)
     Wait(500)
-    DoScreenFadeIn(duration or 1000)
+    utils.fadeIn(1000)
     lib.showMenu('vehicleshop')
 end
 
@@ -408,7 +397,7 @@ local function mainThread()
                     exports.ox_target:addLocalEntity(shopData.npcData.npc, {
                         {
                             name = 'vehicleshop',
-                            icon = shopData.shopIcon or 'car',
+                            icon = shopData.menuIcon or 'car',
                             label = locale('open_shop', shopData.shopLabel or '_ERROR'),
                             distance = 2.5,
                             onSelect = function(data)
@@ -417,7 +406,7 @@ local function mainThread()
                         }
                     })
                 else
-                    shopData.point = createPoint({shopCoords = shopData.shopCoords, shopData = { label = shopData.shopLabel, icon = shopData.shopIcon, index = idx}})
+                    shopData.point = createPoint({shopCoords = shopData.shopCoords, shopData = { label = shopData.shopLabel, icon = shopData.menuIcon, index = idx}})
                 end
     
 
