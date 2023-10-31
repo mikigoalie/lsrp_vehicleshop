@@ -1,5 +1,5 @@
 local _inv = exports.ox_inventory
-
+local plate = require 'modules.generatePlate'
 -- Do not rename resource or touch this part of code!
 local function initializedThread()
     if GetCurrentResourceName() ~= 'lsrp_vehicleshop' then
@@ -57,17 +57,10 @@ lib.callback.register('lsrp_vehicleShop:server:payment', function(source, useBan
     return payBank(source, vehicleData)
 end)
 
-local function getPlate()
-    local str = nil
-    repeat
-        str = ESX.GetRandomString(8)
-        local alreadyExists = MySQL.single.await('SELECT `owner` FROM `owned_vehicles` WHERE plate = ?', {str})
-    until not alreadyExists?.owner
-    return string.upper(str)
-end
+
 
 lib.callback.register('lsrp_vehicleShop:server:generateplate', function(source)
-    return getPlate()
+    return plate.getPlate()
 end)
 
 
@@ -87,7 +80,7 @@ lib.callback.register('lsrp_vehicleShop:server:addVehicle', function(source, veh
     local alreadyExists = MySQL.single.await('SELECT `owner` FROM `owned_vehicles` WHERE `plate` = ?', {vehProperties.plate})
 
     if alreadyExists?.owner then
-        _vehProps.plate = getPlate()
+        _vehProps.plate = plate.getPlate()
     end
 
     local success = MySQL.insert.await('INSERT INTO owned_vehicles (`owner`, `plate`, `vehicle`, `stored`, `type`, `name`) VALUES (?, ?, ?, ?, ?, ?)', {xPlayer.identifier, _vehProps.plate, json.encode(_vehProps), vehicleSpot ~= 0, Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].dbData, data.label})
