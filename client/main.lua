@@ -1,6 +1,10 @@
-lib.locale()
-local blips = {}
+local npc = require('client.modules.npc')
+local blipModule = require('client.modules.blip')
+local utils = require('client.modules.utils')
+local notification = require('client.modules.notify')
+local dprint = require('client.modules.debugprint')
 
+local c = {}
 local vehiclePreview = nil
 local playerLoaded = false
 local _playerInShop = false
@@ -11,17 +15,16 @@ local loadingVehicle = false
 local _inv = exports.ox_inventory
 local vehicleInvData = {}
 
-local function hex2rgb(hex)
-    local hex = hex:gsub("#","")
-    return tonumber("0x"..hex:sub(1,2)), tonumber("0x"..hex:sub(3,4)), tonumber("0x"..hex:sub(5,6))
-end
+local function loadInventoryData()
+    vehicleInvData.inventoryStarted = GetResourceState('ox_inventory'):find('start') ~= nil
+    if not vehicleInvData.inventoryStarted then return end
 
-local function loadData()
     local file = "data/vehicles.lua"
     local import = LoadResourceFile("ox_inventory", file)
     local chunk = assert(load(import, ('@@ox_inventory/%s'):format(file)))
 
     if not chunk then
+        vehicleInvData.inventoryStarted = false
         return
     end
 
@@ -29,21 +32,6 @@ local function loadData()
 
     vehicleInvData.trunk = vehData.trunk
     vehicleInvData.glovebox = vehData.glovebox
-end
-
-local function groupDigs(number, separator)
-    local left,num,right = string.match(number,'^([^%d]*%d)(%d*)(.-)$')
-    return left..(num:reverse():gsub('(%d%d%d)','%1' .. (seperator or ',')):reverse())..right
-end
-
-local function notification(title, msg, _type)
-    lib.notify({
-        title = title or '[_ERROR_]',
-        duration = Config.notifDuration,
-        description = msg,
-        position = Config.menuPosition == 'right' and 'top-left' or 'top-right', 
-        type = _type or inform
-    })
 end
 
 local function _deleteVehicle()
@@ -63,12 +51,8 @@ local function _spawnLocalVehicle(_shopIndex, _selected, _scrollIndex)
     local _data = Config.vehicleShops[_shopIndex]
     local _model = Config.vehicleList[_data.vehicleList][_selected].values[_scrollIndex].vehicleModel
     if not IsModelInCdimage(_model) then return end
-    RequestModel(_model) -- Request the model
-    while not HasModelLoaded(_model) do -- Waits for the model to load
-        loadingVehicle = true
-      Wait(0)
-    end
-    loadingVehicle = false
+    local modelLoaded = lib.requestModel(_model)
+    if not modelLoaded then return end
     vehiclePreview = CreateVehicle(_model, _data.previewCoords.x, _data.previewCoords.y, _data.previewCoords.z, _data.previewCoords.w, false,false)
     SetPedIntoVehicle(cache.ped, vehiclePreview, -1)
     if GetVehicleDoorLockStatus(vehiclePreview) ~= 4 then
@@ -87,6 +71,8 @@ local function _spawnLocalVehicle(_shopIndex, _selected, _scrollIndex)
     if GetVehicleClass(vehiclePreview) == 15 or GetVehicleClass(vehiclePreview) == 16 then
         SetHeliMainRotorHealth(vehiclePreview, 0)
     end
+
+    loadingVehicle = false
 end
 
 
@@ -102,7 +88,6 @@ local function proceedPayment(useBank, _shopIndex, _selected, _secondary)
     end
 
 	local success = lib.callback.await('lsrp_vehicleShop:server:payment', false, useBank, _shopIndex, _selected, _secondary)
-    print(success)
     if not success then
         notification(Config.vehicleShops[_shopIndex]?.shopLabel or '[_ERROR_]', locale('transaction_error'), 'error')
         lib.showMenu('vehicleshop')
@@ -116,7 +101,7 @@ local function proceedPayment(useBank, _shopIndex, _selected, _secondary)
     end
 
 	if success then
-		local vehicleAdded, vehiclePlate, spotTaken, netId = lib.callback.await('lsrp_vehicleShop:server:addVehicle', 500, lib.getVehicleProperties(vehiclePreview), #lib.getNearbyVehicles(Config.vehicleShops[_shopIndex].vehicleSpawnCoords.xyz, 3, true), _shopIndex, _selected, _secondary)
+		local vehicleAdded, vehiclePlate, spotTaken, netId = lib.callback.await('lsrp_vehicleShop:server:addVehicle', 500, lib.getVehicleProperties(vehiclePreview), #lib.getNearbyVehicles(Config.vehicleShops[_shopIndex].vehicleSpawnCoords.xyz, 3, true), _shopIndex, _selected, _secondary, useBank)
 		if vehicleAdded then
             local data = Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_secondary]
 			DoScreenFadeOut(500)
@@ -158,11 +143,11 @@ local function openVehicleSubmenu(_shopIndex, _selected, _scrollIndex)
         values = {
             {
                 label = locale('trunk'),
-                description = vehicleInvData.trunk[vClass] and ('%s %s - %s kg'):format(vehicleInvData.trunk[vClass][1], locale('slots'), groupDigs(vehicleInvData.trunk[vClass][2], '.')) or locale('notrunk'),
+                description = vehicleInvData.trunk[vClass] and ('%s %s - %s kg'):format(vehicleInvData.trunk[vClass][1], locale('slots'), utils.groupDigs(vehicleInvData.trunk[vClass][2], '.')) or locale('notrunk'),
             },
             {
                 label = locale('glovebox'),
-                description = vehicleInvData.glovebox[vClass] and ('%s %s - %s kg'):format(vehicleInvData.glovebox[vClass][1], locale('slots'), groupDigs(vehicleInvData.glovebox[vClass][2], '.')) or locale('noglove'),
+                description = vehicleInvData.glovebox[vClass] and ('%s %s - %s kg'):format(vehicleInvData.glovebox[vClass][1], locale('slots'), utils.groupDigs(vehicleInvData.glovebox[vClass][2], '.')) or locale('noglove'),
             },
             {
                 label = locale('est_speed'),
@@ -185,6 +170,10 @@ local function openVehicleSubmenu(_shopIndex, _selected, _scrollIndex)
     
     if Config.vehicleColors.secondary == true then
         options[#options+1] = {close = false, icon = 'fill-drip', label = locale('secondary_color'), description = locale('secondary_color_desc'), menuArg = 'secondary'}
+    end
+
+    if ESX.PlayerData.job.grade_name == 'boss' then
+        options[#options+1] = {close = false, icon = 'warehouse', label = locale('buy_for_society'), description = locale('buy_for_soc_desc'), checked = false, menuArg = 'society'}
     end
 
     options[#options+1] = {
@@ -223,7 +212,7 @@ local function openVehicleSubmenu(_shopIndex, _selected, _scrollIndex)
         if options[selected].menuArg == 'payment' then
             local alert = lib.alertDialog({
                 header = Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_scrollIndex].label,
-                content = locale('confirm_purchase',Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_scrollIndex].label, groupDigs(Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_scrollIndex].vehiclePrice)),
+                content = locale('confirm_purchase',Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_scrollIndex].label, utils.groupDigs(Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_scrollIndex].vehiclePrice)),
                 centered = true,
                 cancel = true,
                 labels = {confirm = locale('confirm'), cancel = locale('cancel')}
@@ -245,7 +234,7 @@ local function openVehicleSubmenu(_shopIndex, _selected, _scrollIndex)
                 {type = 'color', default = '#eb4034'},
             })
             if input then
-                local r, g, b = hex2rgb(input[1])
+                local r, g, b = utils.hex2rgb(input[1])
                 if options[selected].menuArg == 'primary' then
                     SetVehicleCustomPrimaryColour(vehiclePreview, r or 255, g or 0, b or 0)
                 else
@@ -268,7 +257,7 @@ local function openMenu(_shopIndex)
 
     for classIndex, classInfo in pairs(_vehicleClassCFG) do
         for i=1, #classInfo.values do
-            classInfo.values[i].description = locale('priceTag', groupDigs(classInfo.values[i].vehiclePrice))
+            classInfo.values[i].description = locale('priceTag', utils.groupDigs(classInfo.values[i].vehiclePrice))
         end
         
         options[#options+1] = {
@@ -277,7 +266,7 @@ local function openMenu(_shopIndex)
             icon = classInfo.icon or 'car',
             arrow = true,
             values = classInfo.values,
-            classIndex = classIndex
+            classIndex = classIndex,
         }
     end
 
@@ -293,6 +282,7 @@ local function openMenu(_shopIndex)
                 notification('TIP', locale('tip'), 'inform')
                 hintShown = true
             end
+
             _spawnLocalVehicle(_shopIndex, selected, scrollIndex)
         end,
         onClose = function(keyPressed)
@@ -335,7 +325,7 @@ local function openMenu(_shopIndex)
 end
 
 local function onEnter(point)
-    lib.showTextUI(locale('open_shop', point.shopLabel or '_ERROR'), {icon = point.shopIcon or 'car', position = "top-center"})
+    lib.showTextUI(locale('open_shop', point.shop.label or '_ERROR'), {icon = point.shop.icon or 'car', position = "top-center"})
 end
 
 local function onExit(point)
@@ -346,50 +336,33 @@ local function nearby(point)
     if point.currentDistance <= 2 then
         if IsControlJustPressed(0, 38) and _playerInShop == false then
             lib.hideTextUI()
-            openMenu(point.shopIndex)
+            openMenu(point.shop.index)
         end
     end
 end
 
 local function createPoint(data)
-	return lib.points.new(data.shopCoords, Config.textDistance, {nearby = nearby, onEnter = onEnter, onExit = onExit, shopIcon = data.shopIcon, shopLabel = data.shopLabel, shopIndex = data.index})
+	return lib.points.new(data.shopCoords, Config.textDistance, {nearby = nearby, onEnter = onEnter, onExit = onExit, shop = data.shopData})
 end
-
-local function createNpc(model, coords)
-    lib.requestModel(model)
-    local npcHandle = CreatePed(5, model, coords.x, coords.y, coords.z, coords.w, false, true)
-    FreezeEntityPosition(npcHandle, true)
-    SetEntityInvincible(npcHandle, true)
-    SetBlockingOfNonTemporaryEvents(npcHandle, true)
-    SetPedCanBeTargetted(npcHandle, false)
-    SetEntityAsMissionEntity(npcHandle, true, true)
-    TaskStartScenarioInPlace(npcHandle, 'WORLD_HUMAN_GUARD_STAND')
-    return npcHandle
-end
-
 
 local function mainThread()
-    loadData()
+    loadInventoryData()
 
     for _, shopData in pairs(Config.vehicleShops) do
-        shopData.blipData.blip = AddBlipForCoord(shopData.shopCoords.xyz)
-        local blip = shopData.blipData.blip 
-        SetBlipSprite(blip, shopData.blipData.sprite)
-        SetBlipDisplay(blip, 4)
-        SetBlipScale(blip, shopData.blipData.scale)
-        SetBlipColour(blip, shopData.blipData.color)
-        SetBlipSecondaryColour(blip, 255, 0, 0)
-        SetBlipAsShortRange(blip, true)
-        BeginTextCommandSetBlipName("STRING")
-        AddTextComponentString(shopData.shopLabel)
-        EndTextCommandSetBlipName(blip)
+        shopData.blipData.blip = blipModule.createBlip({
+            coords = shopData.shopCoords.xyz,
+            sprite = shopData.blipData.sprite,
+            display = 4,
+            scale = shopData.blipData.scale,
+            color = shopData.blipData.color,
+            label = shopData.shopLabel
+        })
     end
 
     while playerLoaded do
 		local playerCoords = GetEntityCoords(cache.ped)
         for idx, shopData in pairs(Config.vehicleShops) do
-            
-            if #(playerCoords - shopData.shopCoords) > 150.0 then
+            if #(playerCoords - shopData.shopCoords) > 200.0 then
                 if shopData.point then
                     shopData.point:remove()
                     shopData.point = nil
@@ -414,7 +387,7 @@ local function mainThread()
             end
 
             
-            if #(playerCoords - shopData.shopCoords) < 125.0 then
+            if #(playerCoords - shopData.shopCoords) < 150.0 then
                 if shopData.point or shopData?.npcData?.npc then
                     goto continue
                 end
@@ -424,34 +397,34 @@ local function mainThread()
                 end
 
                 for i=1, #shopData.showcaseVehicle do
-                    local ModelHash = shopData.showcaseVehicle[i].vehicleModel
-                    if not IsModelInCdimage(ModelHash) then return end
-                    RequestModel(ModelHash)
-                    while not HasModelLoaded(ModelHash) do
-                        Wait(0)
+                    local showcase_vehicle = shopData.showcaseVehicle[i]
+                    if not IsModelInCdimage(showcase_vehicle.vehicleModel) then return end
+                    local modelLoaded = lib.requestModel(showcase_vehicle.vehicleModel, 1000)
+                    if not modelLoaded then return end
+                    showcase_vehicle.handle = CreateVehicle(showcase_vehicle.vehicleModel, showcase_vehicle.coords.xyz, showcase_vehicle.coords.w, false, false)
+                    SetEntityAsMissionEntity(showcase_vehicle.handle)
+                    SetVehicleDoorsLocked(showcase_vehicle.handle, 2)
+                    SetVehicleUndriveable(showcase_vehicle.handle, true)
+                    SetVehicleDoorsLockedForAllPlayers(showcase_vehicle.handle, true)
+                    SetVehicleNumberPlateText(showcase_vehicle.handle, ('SHWCS%s'):format(i))
+                    SetVehicleWindowTint(showcase_vehicle.handle, 3)
+                    SetEntityInvincible(showcase_vehicle.handle, true)
+                    SetVehicleDirtLevel(showcase_vehicle.handle, 0.0)
+                    FreezeEntityPosition(showcase_vehicle.handle, true)
+                    if showcase_vehicle.color[1] == 'chameleon' then
+                        SetVehicleModKit(showcase_vehicle.handle, 0)
+                        SetVehicleColours(showcase_vehicle.handle, showcase_vehicle.color[2], showcase_vehicle.color[2])
+                    else
+                        SetVehicleCustomPrimaryColour(showcase_vehicle.handle, showcase_vehicle.color[1] or 255, showcase_vehicle.color[2] or 0, showcase_vehicle.color[3] or 0)
                     end
-
-                    shopData.showcaseVehicle[i].handle = CreateVehicle(ModelHash, shopData.showcaseVehicle[i].coords.xyz, shopData.showcaseVehicle[i].coords.w, false, false)
-                    SetEntityAsMissionEntity(shopData.showcaseVehicle[i].handle)
-                    SetVehicleDoorsLocked(shopData.showcaseVehicle[i].handle, 2)
-                    SetVehicleUndriveable(shopData.showcaseVehicle[i].handle, true)
-                    SetVehicleDoorsLockedForAllPlayers(shopData.showcaseVehicle[i].handle, true)
-                    SetVehicleDirtLevel(shopData.showcaseVehicle[i].handle, 0)
-                    SetVehicleNumberPlateText(shopData.showcaseVehicle[i].handle, ('SHWCS%s'):format(i))
-                    SetVehicleWindowTint(shopData.showcaseVehicle[i].handle, 3)
-                    SetEntityInvincible(shopData.showcaseVehicle[i].handle, true)
-                    SetVehicleDirtLevel(shopData.showcaseVehicle[i].handle, 0.0)
-                    SetVehicleOnGroundProperly(shopData.showcaseVehicle[i].handle)
-                    FreezeEntityPosition(shopData.showcaseVehicle[i].handle, true)
-                    SetVehicleCustomPrimaryColour(shopData.showcaseVehicle[i].handle, shopData.showcaseVehicle[i].color[1] or 255, shopData.showcaseVehicle[i].color[2] or 0, shopData.showcaseVehicle[i].color[3] or 0)
                 end
 
                 :: skip_showcase ::
 
-                shopData.npcData.npc = createNpc(shopData.npcData.model, shopData.npcData.position)
-                
+                shopData.npcData.npc = npc.create(shopData.npcData.model, shopData.npcData.position)
+
                 if Config.oxTarget then
-                    local npcOptions = {
+                    exports.ox_target:addLocalEntity(shopData.npcData.npc, {
                         {
                             name = 'vehicleshop',
                             icon = shopData.shopIcon or 'car',
@@ -461,13 +434,12 @@ local function mainThread()
                                 openMenu(idx)
                             end
                         }
-                    }
-    
-                    exports.ox_target:addLocalEntity(shopData.npcData.npc, npcOptions)
-                    goto continue
+                    })
+                else
+                    shopData.point = createPoint({shopCoords = shopData.shopCoords, shopData = { label = shopData.shopLabel, icon = shopData.shopIcon, index = idx}})
                 end
     
-                shopData.point = createPoint({shopCoords = shopData.shopCoords, index = idx, shopLabel = shopData.shopLabel})
+
             end
             ::continue::
         end
@@ -492,9 +464,9 @@ end)
 AddEventHandler('esx:onPlayerLogout', function()
     playerLoaded = false
     for _, shopData in pairs(Config.vehicleShops) do
-        if DoesBlipExist(shopData.blipData.blip) then
-            RemoveBlip(shopData.blipData.blip)
-        end
+
+        blipModule.removeBlip(shopData.blipData.blip)
+        
         if shopData.point then
             shopData.point:remove()
             shopData.point = nil
@@ -541,9 +513,8 @@ AddEventHandler('onResourceStop', function(resourceName)
     if (GetCurrentResourceName() ~= resourceName) then return end
     
     for _, shopData in pairs(Config.vehicleShops) do
-        if DoesBlipExist(shopData.blipData.blip) then
-            RemoveBlip(shopData.blipData.blip)
-        end
+        blipModule.removeBlip(shopData.blipData.blip)
+
         if shopData.point then
             shopData.point:remove()
             shopData.point = nil
@@ -589,4 +560,19 @@ AddEventHandler('onResourceStop', function(resourceName)
     vehiclePreview = nil
 
 
+end)
+
+
+lib.onCache('vehicle', function(value)
+    if not vehiclePreview then
+        return
+    end
+
+    if not value then
+        return
+    end
+
+    Wait(0)
+
+    DisplayRadar(false)
 end)

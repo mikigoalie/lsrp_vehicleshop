@@ -24,11 +24,10 @@ function log(text)
 end
 
 function getBankMoney(source)
-    local xPlayer = ESX.GetPlayerFromId(source)
-    return xPlayer.getAccount('bank').money
+    return exports.pefcl:getDefaultAccountBalance(source).data
 end
 
-function removeBankMoney(source, vehPrice)
-    local xPlayer = ESX.GetPlayerFromId(source)
-    xPlayer.removeAccountMoney('bank', vehPrice)
+function payBank(source, vehicleData)
+    local result = exports.pefcl:removeBankBalance(source, { amount = vehicleData.vehiclePrice, message = ('Zakoupení vozidla %s'):format(vehicleData.label) })
+    return result.status == 'ok' or false
 end

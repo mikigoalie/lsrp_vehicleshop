@@ -32,46 +32,36 @@ lib.callback.register('lsrp_vehicleShop:server:payment', function(source, useBan
     end
 
 
-    local vehiclePrice = Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_secondary].vehiclePrice
+    local vehicleData = Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_secondary]
+    local vehiclePrice =vehicleData.vehiclePrice
 
     if not tonumber(vehiclePrice) or vehiclePrice < 1000 then return false end
 
     if Config.vehicleShops[_shopIndex].license then
-        local hasLicense = MySQL.single.await('SELECT type FROM user_licenses WHERE owner = ? AND type = ?', {ESX.GetPlayerFromId(source).identifier, Config.vehicleShops[_shopIndex].license})
+        local hasLicense = MySQL.single.await('SELECT `type` FROM `user_licenses` WHERE `owner` = ? AND `type` = ?', {ESX.GetPlayerFromId(source).identifier, Config.vehicleShops[_shopIndex].license})
         if not hasLicense then
             return 'license'
         end
     end
 
-    if not useBank then
-        local money = _inv:GetItem(source, 'money', nil, true)
-        if money < vehiclePrice then
-            return false
-        end
 
-        return _inv:RemoveItem(source, 'money', vehiclePrice)
+    if not useBank then
+        return _inv:RemoveItem(source, 'money', vehiclePrice)   -- This export should be safe to use this way
     end
 
-    local bankMoney = Config.usePEFCL and exports.pefcl:getDefaultAccountBalance(source).data or getBankMoney(source)
+    local bankMoney = getBankMoney(source)
     if bankMoney < vehiclePrice then
         return false
     end
 
-    if Config.usePEFCL then
-        local result = exports.pefcl:removeBankBalance(source, { amount = vehiclePrice, message = ('Zakoupení vozidla %s'):format(Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_secondary].label) })
-        return result.status == 'ok' or false
-    else
-        removeBankMoney(source, vehiclePrice)
-        return true
-    end
-
+    return payBank(source, vehicleData)
 end)
 
 local function getPlate()
     local str = nil
     repeat
         str = ESX.GetRandomString(8)
-        local alreadyExists = MySQL.single.await('SELECT owner FROM owned_vehicles WHERE plate = ?', {str})
+        local alreadyExists = MySQL.single.await('SELECT `owner` FROM `owned_vehicles` WHERE plate = ?', {str})
     until not alreadyExists?.owner
     return string.upper(str)
 end
@@ -82,7 +72,7 @@ end)
 
 
 
-lib.callback.register('lsrp_vehicleShop:server:addVehicle', function(source, vehProperties, vehicleSpot, _shopIndex, _selected, _secondary)
+lib.callback.register('lsrp_vehicleShop:server:addVehicle', function(source, vehProperties, vehicleSpot, _shopIndex, _selected, _secondary, useBank)
     local xPlayer = ESX.GetPlayerFromId(source)
     if not xPlayer then return false end
 
@@ -94,24 +84,29 @@ lib.callback.register('lsrp_vehicleShop:server:addVehicle', function(source, veh
         return false
     end
 
-    local alreadyExists = MySQL.single.await('SELECT owner FROM owned_vehicles WHERE plate = ?', {vehProperties.plate})
+    local alreadyExists = MySQL.single.await('SELECT `owner` FROM `owned_vehicles` WHERE `plate` = ?', {vehProperties.plate})
 
     if alreadyExists?.owner then
         _vehProps.plate = getPlate()
     end
 
-    local success = MySQL.insert.await('INSERT INTO owned_vehicles (`owner`, `plate`, `vehicle`, `stored`, `type`) VALUES (?, ?, ?, ?, ?)', {xPlayer.identifier, _vehProps.plate, json.encode(_vehProps), vehicleSpot ~= 0, Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].dbData})
+    local success = MySQL.insert.await('INSERT INTO owned_vehicles (`owner`, `plate`, `vehicle`, `stored`, `type`, `name`) VALUES (?, ?, ?, ?, ?, ?)', {xPlayer.identifier, _vehProps.plate, json.encode(_vehProps), vehicleSpot ~= 0, Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].dbData, data.label})
     if vehicleSpot == 0 then
         ESX.OneSync.SpawnVehicle(data.vehicleModel, Config.vehicleShops[_shopIndex].vehicleSpawnCoords.xyz, Config.vehicleShops[_shopIndex].vehicleSpawnCoords.w, _vehProps, function(NetworkId)
             Wait(100)
             local Vehicle = NetworkGetEntityFromNetworkId(NetworkId)
             if DoesEntityExist(Vehicle) then
                 SetVehicleDoorsLocked(Vehicle, 1)
+                local _vehicleState = Entity(Vehicle).state
+                _vehicleState:set('owner', xPlayer.identifier:sub(1, 10), true)
             end
         end)
     end
-    log({['Vehicle model'] = data.label, ['Price'] = data.vehiclePrice, ['Plate'] = _vehProps.plate, ['Buyer'] = GetPlayerName(source), ['Player identifier'] = xPlayer.identifier})
+
+    log({['Vehicle model'] = data.label, ['Price'] = data.vehiclePrice, ['Plate'] = _vehProps.plate, ['Buyer'] = GetPlayerName(source), ['Player identifier'] = xPlayer.identifier, ['Payment type'] = useBank and locale('bank') or locale('cash')})
+    
     return success, _vehProps.plate, vehicleSpot ~= 0, Vehicle
+    
 end)
 
 AddEventHandler('onResourceStop', function(resourceName)
