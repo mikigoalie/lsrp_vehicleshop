@@ -41,7 +41,7 @@ local function _deleteVehicle()
         SetEntityAsMissionEntity(vehiclePreview)
         DeleteVehicle(vehiclePreview)
     end
-	vehiclePreview = nil
+	vehiclePreview = DoesEntityExist(vehiclePreview) and true
 end
 
 local function _spawnLocalVehicle(_shopIndex, _selected, _scrollIndex)
@@ -63,10 +63,12 @@ local function _spawnLocalVehicle(_shopIndex, _selected, _scrollIndex)
     SetVehicleEngineOn(vehiclePreview, false, false, true)
     SetVehicleHandbrake(vehiclePreview, true)
     SetVehicleInteriorlight(vehiclePreview, true)
-    FreezeEntityPosition(vehiclePreview, true)
 
     if GetVehicleClass(vehiclePreview) == 14 then
         SetBoatAnchor(vehiclePreview, true)
+        SetBoatFrozenWhenAnchored(vehiclePreview, true)
+    else
+        FreezeEntityPosition(vehiclePreview, true)
     end
 
     if GetVehicleClass(vehiclePreview) == 15 or GetVehicleClass(vehiclePreview) == 16 then
@@ -319,7 +321,6 @@ local function openMenu(_shopIndex)
 
     SetEntityVisible(cache.ped, false)
     SetEntityCoords(cache.ped, Config.vehicleShops[_shopIndex].previewCoords)
-    --local selfInstance = lib.callback.await('lsrp_vehicleshop:setInstance', 5000, true)
     Wait(500)
     DoScreenFadeIn(duration or 1000)
     lib.showMenu('vehicleshop')
@@ -437,6 +438,7 @@ AddEventHandler('esx:playerLoaded', function(xPlayer, isNew, skin)
     if playerLoaded then
         return
     end
+
     playerLoaded = true
     CreateThread(mainThread)
 end)
@@ -444,6 +446,8 @@ end)
 
 
 local function onShutDown()
+    playerLoaded = false
+
     lib.closeAlertDialog()
     lib.hideTextUI()
 
@@ -484,14 +488,11 @@ local function onShutDown()
 end
 
 AddEventHandler('esx:onPlayerLogout', function()
-    playerLoaded = false
-
     onShutDown()
 end)
 
 AddEventHandler('onResourceStop', function(resourceName)
     if (GetCurrentResourceName() ~= resourceName) then return end
-    
     onShutDown()
 end)
 

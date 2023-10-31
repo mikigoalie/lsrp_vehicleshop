@@ -1,6 +1,3 @@
-local model = joaat('adder')
-local void_coords = vector3(-787.92, -0.26, -169.97)
-
 local function randomChar(set)
     local index = math.random(#set)
     return set:sub(index, index)
