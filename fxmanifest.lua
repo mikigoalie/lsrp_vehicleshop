@@ -14,5 +14,5 @@ dependencies { 'oxmysql', 'ox_lib' }
 provide 'esx_vehicleshop'
 
 shared_scripts { '@es_extended/imports.lua', '@ox_lib/init.lua', 'shared/shared.lua', 'shared/config.lua', 'shared/vehiclelist.lua' }
-server_scripts { '@oxmysql/lib/MySQL.lua', 'server/main.lua', 'server/fn.lua', 'server/modules/*.lua' }
-client_scripts { 'client/main.lua', 'client/bridge.lua', 'client/modules/*.lua' }
+server_scripts { '@oxmysql/lib/MySQL.lua', 'server/modules/*.lua' , 'server/main.lua', 'server/fn.lua' }
+client_scripts { 'client/modules/*.lua', 'client/main.lua', 'client/bridge.lua' }

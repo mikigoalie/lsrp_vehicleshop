@@ -1,5 +1,5 @@
 local _inv = exports.ox_inventory
-local plate = require 'modules.generatePlate'
+local plate = require('server.modules.plate')
 -- Do not rename resource or touch this part of code!
 local function initializedThread()
     if GetCurrentResourceName() ~= 'lsrp_vehicleshop' then
@@ -79,9 +79,7 @@ lib.callback.register('lsrp_vehicleShop:server:addVehicle', function(source, veh
 
     local alreadyExists = MySQL.single.await('SELECT `owner` FROM `owned_vehicles` WHERE `plate` = ?', {vehProperties.plate})
 
-    if alreadyExists?.owner then
-        _vehProps.plate = plate.getPlate()
-    end
+    _vehProps.plate = plate.getPlate()
 
     local success = MySQL.insert.await('INSERT INTO owned_vehicles (`owner`, `plate`, `vehicle`, `stored`, `type`, `name`) VALUES (?, ?, ?, ?, ?, ?)', {xPlayer.identifier, _vehProps.plate, json.encode(_vehProps), vehicleSpot ~= 0, Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].dbData, data.label})
     if vehicleSpot == 0 then
