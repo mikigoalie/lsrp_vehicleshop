@@ -42,6 +42,47 @@ local function teleportPlayerToLastPos()
     SetEntityHeading(cache.ped, lastCoords.w)
 end
 
+local function deleteLocalVehicle(handle)
+    if handle then
+        SetVehicleAsNoLongerNeeded(handle)
+        SetEntityAsMissionEntity(handle)
+        DeleteVehicle(handle)
+    end
+
+	return DoesEntityExist(handle) and true
+end
+
+local function loadModel(model)
+    if not IsModelInCdimage(model) then return false end
+    local modelLoaded = lib.requestModel(model)
+    if not modelLoaded then return false end
+    return true
+end
+
+local function setVehicleProperties(vehicle)
+    if GetVehicleDoorLockStatus(vehicle) ~= 4 then
+        SetVehicleDoorsLocked(vehicle, 4)
+    end
+
+    SetVehicleEngineOn(vehicle, false, false, true)
+    SetVehicleHandbrake(vehicle, true)
+    SetVehicleInteriorlight(vehicle, true)
+
+    if GetVehicleClass(vehicle) == 14 then
+        SetBoatAnchor(vehicle, true)
+        SetBoatFrozenWhenAnchored(vehicle, true)
+    else
+        FreezeEntityPosition(vehicle, true)
+    end
+
+    if GetVehicleClass(vehicle) == 15 or GetVehicleClass(vehicle) == 16 then
+        SetHeliMainRotorHealth(vehicle, 0)
+    end
+
+end
+
+
+
 return {
     hex2rgb = hex2rgb,
     groupDigs = groupDigs,
@@ -49,5 +90,8 @@ return {
     fadeIn = fadeIn,
     dprint = dprint,
     setLastCoords = setLastCoords,
-    teleportPlayerToLastPos = teleportPlayerToLastPos
+    teleportPlayerToLastPos = teleportPlayerToLastPos,
+    deleteLocalVehicle = deleteLocalVehicle,
+    loadModel = loadModel,
+    setVehicleProperties = setVehicleProperties
 }

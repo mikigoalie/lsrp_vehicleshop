@@ -11,5 +11,14 @@ local function create(model, coords)
     return npcHandle
 end
 
+local function deleteFromVeh(vehicle)
+    for i = -1, 10 do   -- I could get GetVehicleModelNumberOfSeats but fuck it, i dont think it matters anyway
+        local vehiclePed = GetPedInVehicleSeat(vehicle, i)
+        if vehiclePed ~= cache.ped and vehiclePed > 0 and NetworkGetEntityOwner(vehiclePed) == cache.playerId then
+            SetEntityAsMissionEntity(vehiclePed)
+            DeleteEntity(vehiclePed)
+        end
+    end
+end
 
-return { create = create }
+return { create = create, delete = delete, deleteFromVeh = deleteFromVeh }

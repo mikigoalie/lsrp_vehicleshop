@@ -6,11 +6,10 @@ local create_showcase_vehicle = require('client.modules.showcase')
 
 local vehiclePreview = nil
 local playerLoaded = false
-local _playerInShop = false
+local IS_PLAYER_IN_SHOP = false
 local shopPoint = {}
 local lastIndex = nil
 local loadingVehicle = false
-local _inv = exports.ox_inventory
 local vehicleInvData = {}
 
 local function loadInventoryData()
@@ -32,46 +31,19 @@ local function loadInventoryData()
     vehicleInvData.glovebox = vehData.glovebox
 end
 
-local function _deleteVehicle()
-    if vehiclePreview then
-        SetVehicleAsNoLongerNeeded(vehiclePreview)
-        SetEntityAsMissionEntity(vehiclePreview)
-        DeleteVehicle(vehiclePreview)
-    end
-	vehiclePreview = DoesEntityExist(vehiclePreview) and true
-end
-
 local function _spawnLocalVehicle(_shopIndex, _selected, _scrollIndex)
-    _deleteVehicle()
-
+    vehiclePreview = utils.deleteLocalVehicle(vehiclePreview)
     if loadingVehicle or vehiclePreview then return end
-
     local _data = Config.vehicleShops[_shopIndex]
     local _model = Config.vehicleList[_data.vehicleList][_selected].values[_scrollIndex].vehicleModel
-    if not IsModelInCdimage(_model) then return end
-    local modelLoaded = lib.requestModel(_model)
-    if not modelLoaded then return end
+    loadingVehicle = true
+    if not utils.loadModel(_model) then 
+        loadingVehicle = false
+        return 
+    end
     vehiclePreview = CreateVehicle(_model, _data.previewCoords.x, _data.previewCoords.y, _data.previewCoords.z, _data.previewCoords.w, false,false)
+    utils.setVehicleProperties(vehiclePreview)
     SetPedIntoVehicle(cache.ped, vehiclePreview, -1)
-    if GetVehicleDoorLockStatus(vehiclePreview) ~= 4 then
-        SetVehicleDoorsLocked(vehiclePreview, 4)
-    end
-
-    SetVehicleEngineOn(vehiclePreview, false, false, true)
-    SetVehicleHandbrake(vehiclePreview, true)
-    SetVehicleInteriorlight(vehiclePreview, true)
-
-    if GetVehicleClass(vehiclePreview) == 14 then
-        SetBoatAnchor(vehiclePreview, true)
-        SetBoatFrozenWhenAnchored(vehiclePreview, true)
-    else
-        FreezeEntityPosition(vehiclePreview, true)
-    end
-
-    if GetVehicleClass(vehiclePreview) == 15 or GetVehicleClass(vehiclePreview) == 16 then
-        SetHeliMainRotorHealth(vehiclePreview, 0)
-    end
-
     loadingVehicle = false
 end
 
@@ -106,7 +78,7 @@ local function proceedPayment(useBank, _shopIndex, _selected, _secondary)
             local data = Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_secondary]
             utils.fadeOut(500)
             if vehiclePreview then
-                _deleteVehicle(vehiclePreview)
+                vehiclePreview = utils.deleteLocalVehicle(vehiclePreview)
             end
 			PlaySoundFrontend(-1, 'Pre_Screen_Stinger', 'DLC_HEISTS_FAILED_SCREEN_SOUNDS', 0)
             notification(Config.vehicleShops[_shopIndex]?.shopLabel, locale('success_bought', Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_secondary].label, vehiclePlate), 'success')
@@ -115,15 +87,7 @@ local function proceedPayment(useBank, _shopIndex, _selected, _secondary)
             SetEntityVisible(cache.ped, true)
             utils.fadeIn(1000)
             notification(Config.vehicleShops[_shopIndex]?.shopLabel or '[_ERROR_]', not spotTaken and locale('vehicle_pick_up', data.label, vehiclePlate) or locale('added_to_garage', data.label, vehiclePlate), 'success')
-			
-            for i = -1, 0 do
-                local ped = GetPedInVehicleSeat(NetToVeh(netId), i)
-        
-                if ped ~= cache.ped and ped > 0 and NetworkGetEntityOwner(ped) == cache.playerId then
-                    DeleteEntity(ped)
-                end
-            end
-
+            npc.deleteFromVeh(NetToVeh(netId))
             return
 		end
 
@@ -287,7 +251,7 @@ local function openMenu(_shopIndex)
             utils.fadeOut(500)
             utils.teleportPlayerToLastPos()
             while DoesEntityExist(vehiclePreview) do
-                _deleteVehicle()
+                vehiclePreview = utils.deleteLocalVehicle(vehiclePreview)
             end
             Wait(500)
             SetEntityVisible(cache.ped, true)
@@ -325,7 +289,7 @@ end
 
 local function nearby(point)
     if point.currentDistance <= 2 then
-        if IsControlJustPressed(0, 38) and _playerInShop == false then
+        if IsControlJustPressed(0, 38) and IS_PLAYER_IN_SHOP == false then
             lib.hideTextUI()
             openMenu(point.shop.index)
         end
@@ -418,21 +382,6 @@ local function mainThread()
     end
 end
 
-if ESX.IsPlayerLoaded() then
-    CreateThread(mainThread)
-    playerLoaded = true
-end
-
-AddEventHandler('esx:playerLoaded', function(xPlayer, isNew, skin)
-    if playerLoaded then
-        return
-    end
-
-    playerLoaded = true
-    CreateThread(mainThread)
-end)
-
-
 
 local function onShutDown()
     playerLoaded = false
@@ -471,17 +420,37 @@ local function onShutDown()
     SetEntityVisible(cache.ped, true)
 
     if vehiclePreview then
-        SetEntityAsMissionEntity(vehiclePreview)
-        _deleteVehicle(vehiclePreview)
+        vehiclePreview = utils.deleteLocalVehicle(vehiclePreview)
     end
 end
+
+
+
+--[[ Events ]]--
+
+if ESX.IsPlayerLoaded() then
+    playerLoaded = true
+    CreateThread(mainThread)
+end
+
+AddEventHandler('esx:playerLoaded', function(xPlayer, isNew, skin)
+    if playerLoaded then
+        return
+    end
+
+    playerLoaded = true
+    CreateThread(mainThread)
+end)
+
 
 AddEventHandler('esx:onPlayerLogout', function()
     onShutDown()
 end)
 
+local RES_NAME = GetCurrentResourceName()
 AddEventHandler('onResourceStop', function(resourceName)
-    if (GetCurrentResourceName() ~= resourceName) then return end
+    if (RES_NAME ~= resourceName) then return end
+
     onShutDown()
 end)
 
