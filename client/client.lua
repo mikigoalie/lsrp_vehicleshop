@@ -248,6 +248,7 @@ local function openMenu(_shopIndex)
                 hintShown = true
             end
 
+            Config.vehicleShops[_shopIndex].cachedIndex = selected
             _spawnLocalVehicle(_shopIndex, selected, scrollIndex)
         end,
         onClose = function(keyPressed)
@@ -277,7 +278,7 @@ local function openMenu(_shopIndex)
     SetEntityCoords(cache.ped, Config.vehicleShops[_shopIndex].previewCoords)
     Wait(500)
     utils.fadeIn(1000)
-    lib.showMenu('vehicleshop')
+    lib.showMenu('vehicleshop', Config.vehicleShops[_shopIndex].cachedIndex)
 end
 
 local function onEnter(point)
