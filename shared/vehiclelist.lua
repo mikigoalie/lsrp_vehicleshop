@@ -1,6 +1,6 @@
 Config.vehicleList = {
     ['vehicles'] = {
-        {label = locale('compacts'), defaultIndex = 2, dbData = 'car', menuColor = "gold", values = {
+        {label = locale('compacts'), dbData = 'car', menuColor = "gold", values = {
             {label = 'Club', vehicleModel = joaat('club'), vehiclePrice = 22000},
             {label = 'Weevil', vehicleModel = joaat('weevil'), vehiclePrice = 20000},
             {label = 'Brioso 300', vehicleModel = joaat('brioso2'), vehiclePrice = 18000 },
@@ -10,7 +10,7 @@ Config.vehicleList = {
             {label = 'Issi Classic', vehicleModel = joaat('issi3'), vehiclePrice = 18000},
             {label = 'Rhapsody', vehicleModel = joaat('rhapsody'), vehiclePrice = 32000},
         }},
-        {label = locale('coupes'), defaultIndex = 2, dbData = 'car', values = {
+        {label = locale('coupes'), dbData = 'car', values = {
             {label = 'Oracle XS', vehicleModel = joaat('oracle'), vehiclePrice = 75000},
             {label = 'Oracle', vehicleModel = joaat('oracle2'), vehiclePrice = 78000},
             {label = 'Zion', vehicleModel = joaat('zion'), vehiclePrice = 82000},
@@ -27,7 +27,7 @@ Config.vehicleList = {
             {label = 'Exemplar', vehicleModel = joaat('exemplar'), vehiclePrice = 90000},
             {label = 'Cognoscenti Cabrio', vehicleModel = joaat('cogcabrio'), vehiclePrice = 70000},
         }},
-        {label = locale('sports'), defaultIndex = 2, dbData = 'car', values = {
+        {label = locale('sports'), dbData = 'car', values = {
             {label = 'NineF Cabrio', vehicleModel = joaat('ninef2'), vehiclePrice = 310000},
             {label = 'Buffalo S', vehicleModel = joaat('buffalo2'), vehiclePrice = 275000}, 
             {label = 'Itali GTO', vehicleModel = joaat('italigto'), vehiclePrice = 350000}, 
@@ -51,18 +51,18 @@ Config.vehicleList = {
         }},
     },
     ['boats'] = {
-        {label = locale('skis'), defaultIndex = 2, dbData = 'boat', values = {
+        {label = locale('skis'), dbData = 'boat', values = {
             {label = 'Seashark', vehicleModel = joaat('seashark'), vehiclePrice = 1000}, 
             {label = 'Seashark', vehicleModel = joaat('seashark2'), vehiclePrice = 1000}, 
             {label = 'Seashark', vehicleModel = joaat('seashark3'), vehiclePrice = 1000},
         }},
-        {label = locale('boats'), defaultIndex = 2, dbData = 'boat', values = {
+        {label = locale('boats'), dbData = 'boat', values = {
             {label = 'Dinghy', vehicleModel = joaat('dinghy'), vehiclePrice = 1000}, 
             {label = 'DinghyB', vehicleModel = joaat('dinghy2'), vehiclePrice = 1000}, 
             {label = 'DinghyC', vehicleModel = joaat('dinghy3'), vehiclePrice = 1000},
             {label = 'DinghyD', vehicleModel = joaat('dinghy4'), vehiclePrice = 1000}, 
         }},
-        {label = locale('cruise_boats'), defaultIndex = 2, dbData = 'boat', values = {
+        {label = locale('cruise_boats'), dbData = 'boat', values = {
             {label = 'Jetmax', vehicleModel = joaat('jetmax'), vehiclePrice = 1000}, 
             {label = 'Speeder', vehicleModel = joaat('speeder'), vehiclePrice = 1000}, 
             {label = 'SpeederB', vehicleModel = joaat('speeder2'), vehiclePrice = 1000},
@@ -76,11 +76,11 @@ Config.vehicleList = {
        }},
     },
     ['planes'] = {
-        {label = locale('helis'), defaultIndex = 2, dbData = 'plane', values = {
+        {label = locale('helis'), dbData = 'plane', values = {
             {label = 'havok', vehicleModel = joaat('havok'), vehiclePrice = 1000}, 
             {label = 'nokota', vehicleModel = joaat('nokota'), vehiclePrice = 1000}, 
         }},
-        {label = locale('planes'), defaultIndex = 2, dbData = 'plane', values = {
+        {label = locale('planes'), dbData = 'plane', values = {
             {label = 'havok', vehicleModel = joaat('havok'), vehiclePrice = 1000}, 
             {label = 'nokota', vehicleModel = joaat('nokota'), vehiclePrice = 1000}, 
         }},

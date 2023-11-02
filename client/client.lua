@@ -34,6 +34,7 @@ end
 local function _spawnLocalVehicle(_shopIndex, _selected, _scrollIndex)
     vehiclePreview = utils.deleteLocalVehicle(vehiclePreview)
     if loadingVehicle or vehiclePreview then return end
+
     local _data = Config.vehicleShops[_shopIndex]
     local _model = Config.vehicleList[_data.vehicleList][_selected].values[_scrollIndex].vehicleModel
     loadingVehicle = true
@@ -229,6 +230,7 @@ local function openMenu(_shopIndex)
             arrow = true,
             values = classInfo.values,
             classIndex = classIndex,
+            defaultIndex = classInfo.cachedIndex or 1,
         }
     end
 
@@ -237,6 +239,7 @@ local function openMenu(_shopIndex)
         title = Config.vehicleShops[_shopIndex].shopLabel,
         position = Config.menuPosition == 'right' and 'top-right' or 'top-left',
         onSideScroll = function(selected, scrollIndex, args)
+            _vehicleClassCFG[selected].cachedIndex = scrollIndex
             _spawnLocalVehicle(_shopIndex, selected, scrollIndex)
         end,
         onSelected = function(selected, scrollIndex, args)
@@ -250,9 +253,7 @@ local function openMenu(_shopIndex)
         onClose = function(keyPressed)
             utils.fadeOut(500)
             utils.teleportPlayerToLastPos()
-            while DoesEntityExist(vehiclePreview) do
-                vehiclePreview = utils.deleteLocalVehicle(vehiclePreview)
-            end
+            vehiclePreview = utils.deleteLocalVehicle(vehiclePreview)
             Wait(500)
             SetEntityVisible(cache.ped, true)
             utils.fadeIn(1000)
@@ -323,9 +324,7 @@ local function mainThread()
                 if shopData.showcaseVehicle then
                     for i=1, #shopData.showcaseVehicle do
                         if shopData.showcaseVehicle[i].handle then
-                            while DoesEntityExist(shopData.showcaseVehicle[i].handle) do
-                                SetEntityAsMissionEntity(shopData.showcaseVehicle[i].handle)
-                                DeleteEntity(shopData.showcaseVehicle[i].handle)
+                            while utils.deleteLocalVehicle(shopData.showcaseVehicle[i].handle) do
                                 Wait(100)
                             end
                         end
@@ -455,16 +454,18 @@ AddEventHandler('onResourceStop', function(resourceName)
 end)
 
 
-lib.onCache('vehicle', function(value)
+lib.onCache('vehicle', function(vehicle)
     if not vehiclePreview then
         return
     end
 
-    if not value then
+    if not vehicle then
         return
     end
 
     Wait(0)
 
+    print('D')
+    SetVehicleRadioEnabled(vehicle, false)
     DisplayRadar(false)
 end)

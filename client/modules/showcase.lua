@@ -3,6 +3,7 @@ return function(properties, i)
 
     properties.handle = CreateVehicle(properties.vehicleModel, properties.coords.xyz, properties.coords.w, false, false)
 
+    SetVehicleIsConsideredByPlayer(properties.handle, false)
     SetEntityAsMissionEntity(properties.handle)
     SetVehicleDoorsLocked(properties.handle, 2)
     SetVehicleUndriveable(properties.handle, true)

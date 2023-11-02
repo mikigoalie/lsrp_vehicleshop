@@ -16,6 +16,7 @@ local function deleteFromVeh(vehicle)
         local vehiclePed = GetPedInVehicleSeat(vehicle, i)
         if vehiclePed ~= cache.ped and vehiclePed > 0 and NetworkGetEntityOwner(vehiclePed) == cache.playerId then
             SetEntityAsMissionEntity(vehiclePed)
+            SetPedAsNoLongerNeeded(vehiclePed)
             DeleteEntity(vehiclePed)
         end
     end
