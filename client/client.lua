@@ -3,6 +3,7 @@ local blipModule = require('client.modules.blip')
 local utils = require('client.modules.utils')
 local notification = require('client.modules.notify')
 local create_showcase_vehicle = require('client.modules.showcase')
+local menu_caching = require('client.modules.caching')
 
 local vehiclePreview = nil
 local playerLoaded = false
@@ -55,7 +56,7 @@ local function proceedPayment(useBank, _shopIndex, _selected, _secondary)
         local count = _inv:Search('count', 'money')
         if count < Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_secondary].vehiclePrice then
             notification(Config.vehicleShops[_shopIndex]?.shopLabel, locale('not_enough_money', Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_secondary].vehiclePrice), 'error')
-            lib.showMenu('vehicleshop')
+            menu_caching.showMenu(_shopIndex)
             return
         end
     end
@@ -63,13 +64,13 @@ local function proceedPayment(useBank, _shopIndex, _selected, _secondary)
 	local success = lib.callback.await('lsrp_vehicleShop:server:payment', false, useBank, _shopIndex, _selected, _secondary)
     if not success then
         notification(Config.vehicleShops[_shopIndex]?.shopLabel or '[_ERROR_]', locale('transaction_error'), 'error')
-        lib.showMenu('vehicleshop')
+            menu_caching.showMenu(_shopIndex)
         return
     end
 
     if success == 'license' then
         notification(Config.vehicleShops[_shopIndex]?.shopLabel or '[_ERROR_]', locale('license'), 'error')
-        lib.showMenu('vehicleshop')
+            menu_caching.showMenu(_shopIndex)
         return
     end
 
@@ -166,7 +167,7 @@ local function openVehicleSubmenu(_shopIndex, _selected, _scrollIndex)
             end 
         end,
         onClose = function(keyPressed)
-            lib.showMenu('vehicleshop')
+                menu_caching.showMenu(_shopIndex)
         end,
         options = options
     }, function(selected, scrollIndex, args)
@@ -181,7 +182,7 @@ local function openVehicleSubmenu(_shopIndex, _selected, _scrollIndex)
             })
             
             if alert ~= 'confirm' then
-                lib.showMenu('vehicleshop')
+                    menu_caching.showMenu(_shopIndex)
                 return
             end
 
@@ -239,7 +240,7 @@ local function openMenu(_shopIndex)
         title = Config.vehicleShops[_shopIndex].shopLabel,
         position = Config.menuPosition == 'right' and 'top-right' or 'top-left',
         onSideScroll = function(selected, scrollIndex, args)
-            _vehicleClassCFG[selected].cachedIndex = scrollIndex
+            menu_caching.scrollCache(_vehicleClassCFG[selected], scrollIndex)
             _spawnLocalVehicle(_shopIndex, selected, scrollIndex)
         end,
         onSelected = function(selected, scrollIndex, args)
@@ -248,7 +249,7 @@ local function openMenu(_shopIndex)
                 hintShown = true
             end
 
-            Config.vehicleShops[_shopIndex].cachedIndex = selected
+            menu_caching.selectCache(Config.vehicleShops[_shopIndex], selected)
             _spawnLocalVehicle(_shopIndex, selected, scrollIndex)
         end,
         onClose = function(keyPressed)
@@ -278,7 +279,8 @@ local function openMenu(_shopIndex)
     SetEntityCoords(cache.ped, Config.vehicleShops[_shopIndex].previewCoords)
     Wait(500)
     utils.fadeIn(1000)
-    lib.showMenu('vehicleshop', Config.vehicleShops[_shopIndex].cachedIndex)
+
+    menu_caching.showMenu(_shopIndex)
 end
 
 local function onEnter(point)

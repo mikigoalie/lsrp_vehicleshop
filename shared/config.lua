@@ -2,6 +2,7 @@ Config = {}
 
 --[[ Main section ]]--
 Config.debug = true
+Config.cacheIndexes = true      -- Menu select indexes will save upon closing menu
 Config.menuPosition = 'right'   -- OX Menu pos
 Config.textDistance = 1.0       -- Text UI distance
 Config.notifDuration = 10000    -- Default notif duration
