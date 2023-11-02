@@ -9,10 +9,10 @@ description '[ESX / OX] Simple vehicleshop utilizing OX Library'
 version '2.0.0'
 
 --[[ Resource related ]]--
-files { 'locales/*.json' }
+files { '**/modules/*.lua', 'locales/*.json' }
 dependencies { 'oxmysql', 'ox_lib' }
 provide 'esx_vehicleshop'
 
-shared_scripts { '@es_extended/imports.lua', '@ox_lib/init.lua', 'shared/shared.lua', 'shared/config.lua', 'shared/vehiclelist.lua' }
-server_scripts { '@oxmysql/lib/MySQL.lua', 'server/modules/*.lua' , 'server/main.lua', 'server/fn.lua' }
-client_scripts { 'client/modules/*.lua', 'client/main.lua', 'client/bridge.lua' }
+shared_scripts { '@ox_lib/init.lua', 'shared/shared.lua', 'shared/config.lua', 'shared/vehiclelist.lua' }
+server_scripts { '@oxmysql/lib/MySQL.lua', 'server/server.lua', 'server/fn.lua' }
+client_scripts { 'client/client.lua', 'client/bridge.lua' }

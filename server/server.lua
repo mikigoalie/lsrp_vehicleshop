@@ -1,6 +1,7 @@
-local _inv = exports.ox_inventory
+local db = require('server.modules.database')
 local plate = require('server.modules.plate')
--- Do not rename resource or touch this part of code!
+local functions = require('server.modules.functions')
+
 local function initializedThread()
     if GetCurrentResourceName() ~= 'lsrp_vehicleshop' then
         print('^1It is required! to keep the resource name original. Please rename the resource back.^0')
@@ -17,14 +18,7 @@ local function initializedThread()
     print('$$$$$$$$\\$$$$$$  $$ |  $$ $$ |      ')
     print('\\________\\______/\\__|  \\__\\__|')
     print('^2LSRP Vehicleshop initialized^0')
-end
-
-lib.callback.register('lsrp_vehicleshop:spawnPreview', function(source, _shopIndex, _selected, _scrollIndex)
-    local vehicleModel = Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_scrollIndex].vehicleModel
-    local spawnCoords = Config.vehicleShops[_shopIndex].previewCoords
-    local promise = spawnVehicle(source, vehicleModel, spawnCoords)
-    return promise
-end)
+end MySQL.ready(initializedThread)
 
 lib.callback.register('lsrp_vehicleShop:server:payment', function(source, useBank, _shopIndex, _selected, _secondary)
     if not _shopIndex or not _selected or not _secondary then
@@ -38,8 +32,8 @@ lib.callback.register('lsrp_vehicleShop:server:payment', function(source, useBan
     if not tonumber(vehiclePrice) or vehiclePrice < 1000 then return false end
 
     if Config.vehicleShops[_shopIndex].license then
-        local hasLicense = MySQL.single.await('SELECT `type` FROM `user_licenses` WHERE `owner` = ? AND `type` = ?', {ESX.GetPlayerFromId(source).identifier, Config.vehicleShops[_shopIndex].license})
-        if not hasLicense then
+        local gotLicense = functions.checkLicense(source, Config.vehicleShops[_shopIndex].license)
+        if not gotLicense then
             return 'license'
         end
     end
@@ -69,17 +63,16 @@ lib.callback.register('lsrp_vehicleShop:server:addVehicle', function(source, veh
     local xPlayer = ESX.GetPlayerFromId(source)
     if not xPlayer then return false end
 
-    local data = Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_secondary]
-    local coords = xPlayer.getCoords(true)
     local _vehProps = vehProperties
+    local data = Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_secondary]
 
     if _vehProps.model ~= data.vehicleModel then
         return false
     end
 
-    local alreadyExists = MySQL.single.await('SELECT `owner` FROM `owned_vehicles` WHERE `plate` = ?', {vehProperties.plate})
-
-    _vehProps.plate = plate.getPlate()
+    if plate.plateTaken(_vehProps.plate) then
+        _vehProps.plate = plate.getPlate()
+    end
 
     local success = MySQL.insert.await('INSERT INTO owned_vehicles (`owner`, `plate`, `vehicle`, `stored`, `type`, `name`) VALUES (?, ?, ?, ?, ?, ?)', {xPlayer.identifier, _vehProps.plate, json.encode(_vehProps), vehicleSpot ~= 0, Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].dbData, data.label})
     if vehicleSpot == 0 then
@@ -94,7 +87,7 @@ lib.callback.register('lsrp_vehicleShop:server:addVehicle', function(source, veh
         end)
     end
 
-    log({['Vehicle model'] = data.label, ['Price'] = data.vehiclePrice, ['Plate'] = _vehProps.plate, ['Buyer'] = GetPlayerName(source), ['Player identifier'] = xPlayer.identifier, ['Payment type'] = useBank and locale('bank') or locale('cash')})
+    functions.log({['Vehicle model'] = data.label, ['Price'] = data.vehiclePrice, ['Plate'] = _vehProps.plate, ['Buyer'] = GetPlayerName(source), ['Player identifier'] = xPlayer.identifier, ['Payment type'] = useBank and locale('bank') or locale('cash')})
     
     return success, _vehProps.plate, vehicleSpot ~= 0, Vehicle
     
@@ -104,4 +97,12 @@ AddEventHandler('onResourceStop', function(resourceName)
     if GetCurrentResourceName() ~= resourceName then return end
 end)
 
-MySQL.ready(initializedThread)
+
+function getBankMoney(source)
+    return exports.pefcl:getDefaultAccountBalance(source).data
+end
+
+function payBank(source, vehicleData)
+    local result = exports.pefcl:removeBankBalance(source, { amount = vehicleData.vehiclePrice, message = ('Zakoupení vozidla %s'):format(vehicleData.label) })
+    return result.status == 'ok' or false
+end

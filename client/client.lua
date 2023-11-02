@@ -102,7 +102,7 @@ local function proceedPayment(useBank, _shopIndex, _selected, _secondary)
 
 	if success then
 		local vehicleAdded, vehiclePlate, spotTaken, netId = lib.callback.await('lsrp_vehicleShop:server:addVehicle', 500, lib.getVehicleProperties(vehiclePreview), #lib.getNearbyVehicles(Config.vehicleShops[_shopIndex].vehicleSpawnCoords.xyz, 3, true), _shopIndex, _selected, _secondary, useBank)
-		if vehicleAdded then
+        if vehicleAdded then
             local data = Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_secondary]
             utils.fadeOut(500)
             if vehiclePreview then

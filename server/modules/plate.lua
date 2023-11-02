@@ -1,3 +1,5 @@
+local db = require('server.modules.database')
+local functions = require('server.modules.functions')
 local function randomChar(set)
     local index = math.random(#set)
     return set:sub(index, index)
@@ -33,19 +35,28 @@ local function generatePlate()
     return plate
 end
 
+local function plateTaken(plate)
+    if not plate then return true end
+    local result = db.select('SELECT `owner` FROM `owned_vehicles` WHERE `plate` = ?', { plate })
+    return next(result) and true or false
+end
+
+
 local function getPlate()
     local plate = ''
-    local freePlate = false
+    local plateTaken = true
 
     repeat
         plate = generatePlate()
-        freePlate = MySQL.single.await('SELECT `owner` FROM `owned_vehicles` WHERE plate = ?', {plate})
-    until not freePlate?.owner
+        plateTaken = plateTaken(plate)
+    until not plateTaken
 
     return string.upper(plate)
 end
 
+
 return {
     generatePlate = generatePlate,
-    getPlate = getPlate
+    getPlate = getPlate,
+    plateTaken = plateTaken,
 }

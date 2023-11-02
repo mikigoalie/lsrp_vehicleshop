@@ -1,3 +1,4 @@
+local db = require('server.modules.database')
 local function SendWebHook(text)
     local embedMsg = {}
     timestamp = os.date("%c")
@@ -15,7 +16,19 @@ local function SendWebHook(text)
     function(err, text, headers)end, 'POST', json.encode({username = GetCurrentResourceName(), embeds = embedMsg}), { ['Content-Type']= 'application/json' })
 end
 
-function log(text)
+local functions = {}
+functions.checkLicense = function(source, license)
+    if not license then return false end
+
+    local xPlayer = ESX.GetPlayerFromId(source)
+    if not xPlayer then return false end
+
+    local result = db.select('SELECT `type` FROM `user_licenses` WHERE `owner` = ? AND `type` = ?', { xPlayer.identifier, license })
+    return next(result) and true or false
+end
+
+
+functions.log = function(text)
     if Config.logging == 'oxlogger' then
         lib.logger(source, 'Vehicleshop', json.encode(text))
     else
@@ -23,11 +36,4 @@ function log(text)
     end
 end
 
-function getBankMoney(source)
-    return exports.pefcl:getDefaultAccountBalance(source).data
-end
-
-function payBank(source, vehicleData)
-    local result = exports.pefcl:removeBankBalance(source, { amount = vehicleData.vehiclePrice, message = ('Zakoupení vozidla %s'):format(vehicleData.label) })
-    return result.status == 'ok' or false
-end
+return functions
