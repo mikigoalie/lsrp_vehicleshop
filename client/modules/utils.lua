@@ -31,13 +31,15 @@ local function dprint(text, debugLevel)
 end
 
 
-local lastCoords = vec4(0, 0, 0, 0.0)
+local lastCoords = false
 local function setLastCoords()
     local coords = GetEntityCoords(cache.ped)
     lastCoords = vec4(coords.x, coords.y, coords.z - 1, GetEntityHeading(cache.ped))
 end
 
 local function teleportPlayerToLastPos()
+    if not lastCoords then return end
+
     SetEntityCoords(cache.ped, lastCoords.xyz)
     SetEntityHeading(cache.ped, lastCoords.w)
 end
@@ -78,7 +80,6 @@ local function setVehicleProperties(vehicle)
     if GetVehicleClass(vehicle) == 15 or GetVehicleClass(vehicle) == 16 then
         SetHeliMainRotorHealth(vehicle, 0)
     end
-
 end
 
 

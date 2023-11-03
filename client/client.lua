@@ -4,6 +4,9 @@ local utils = require('client.modules.utils')
 local notification = require('client.modules.notify')
 local create_showcase_vehicle = require('client.modules.showcase')
 local menu_caching = require('client.modules.caching')
+local menuOptions = require('client.modules.menuOptions')
+local generateVehNames = require('client.modules.vehicleNames')
+
 
 local vehiclePreview = nil
 local playerLoaded = false
@@ -64,13 +67,13 @@ local function proceedPayment(useBank, _shopIndex, _selected, _secondary)
 	local success = lib.callback.await('lsrp_vehicleShop:server:payment', false, useBank, _shopIndex, _selected, _secondary)
     if not success then
         notification(Config.vehicleShops[_shopIndex]?.shopLabel or '[_ERROR_]', locale('transaction_error'), 'error')
-            menu_caching.showMenu(_shopIndex)
+        menu_caching.showMenu(_shopIndex)
         return
     end
 
     if success == 'license' then
         notification(Config.vehicleShops[_shopIndex]?.shopLabel or '[_ERROR_]', locale('license'), 'error')
-            menu_caching.showMenu(_shopIndex)
+        menu_caching.showMenu(_shopIndex)
         return
     end
 
@@ -162,12 +165,10 @@ local function openVehicleSubmenu(_shopIndex, _selected, _scrollIndex)
         title = vData.label,
         position = Config.menuPosition == 'right' and 'top-right' or 'top-left',
         onSideScroll = function(selected, scrollIndex, args)
-            if not options[selected].menuArg then 
-                return 
-            end 
+            if not options[selected].menuArg then return end 
         end,
         onClose = function(keyPressed)
-                menu_caching.showMenu(_shopIndex)
+            menu_caching.showMenu(_shopIndex)
         end,
         options = options
     }, function(selected, scrollIndex, args)
@@ -182,7 +183,7 @@ local function openVehicleSubmenu(_shopIndex, _selected, _scrollIndex)
             })
             
             if alert ~= 'confirm' then
-                    menu_caching.showMenu(_shopIndex)
+                menu_caching.showMenu(_shopIndex)
                 return
             end
 
@@ -212,43 +213,20 @@ local function openVehicleSubmenu(_shopIndex, _selected, _scrollIndex)
 end
 
 local function openMenu(_shopIndex)
-    local hintShown = false
     utils.setLastCoords()
 
-    local options = {}
-    local _vehicleClassCFG = Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList]
-
-    for classIndex, classInfo in pairs(_vehicleClassCFG) do
-        for i=1, #classInfo.values do
-            classInfo.values[i].description = locale('priceTag', utils.groupDigs(classInfo.values[i].vehiclePrice))
-        end
-        
-        options[#options+1] = {
-            label = locale(classInfo.label),
-            description = classInfo.description,
-            icon = classInfo.icon or 'car',
-            iconColor = classInfo.menuColor or "",
-            arrow = true,
-            values = classInfo.values,
-            classIndex = classIndex,
-            defaultIndex = classInfo.cachedIndex or 1,
-        }
-    end
+    local CFG_VEHICLE_CLASS = Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList]
+    local options = menuOptions.generateMenuOptions(CFG_VEHICLE_CLASS)
 
     lib.registerMenu({
         id = 'vehicleshop',
         title = Config.vehicleShops[_shopIndex].shopLabel,
         position = Config.menuPosition == 'right' and 'top-right' or 'top-left',
         onSideScroll = function(selected, scrollIndex, args)
-            menu_caching.scrollCache(_vehicleClassCFG[selected], scrollIndex)
+            menu_caching.scrollCache(CFG_VEHICLE_CLASS[selected], scrollIndex)
             _spawnLocalVehicle(_shopIndex, selected, scrollIndex)
         end,
         onSelected = function(selected, scrollIndex, args)
-            if not hintShown then
-                notification('TIP', locale('tip'), 'inform')
-                hintShown = true
-            end
-
             menu_caching.selectCache(Config.vehicleShops[_shopIndex], selected)
             _spawnLocalVehicle(_shopIndex, selected, scrollIndex)
         end,
@@ -267,8 +245,11 @@ local function openMenu(_shopIndex)
         if not selected or not scrollIndex then return end
         while not cache.vehicle and vehiclePreview do
             SetPedIntoVehicle(cache.ped, vehiclePreview, -1)
-            Wait(5)
+            Wait(10)
         end
+
+        local vehInfo = menuOptions.getVehicleInfo(vehiclePreview, Config.vehicleShops[_shopIndex].shopLabel)
+        lib.showTextUI(vehInfo.text, vehInfo.options)
 
         openVehicleSubmenu(_shopIndex, selected, scrollIndex)
     end)
@@ -281,6 +262,11 @@ local function openMenu(_shopIndex)
     utils.fadeIn(1000)
 
     menu_caching.showMenu(_shopIndex)
+    while not cache.vehicle do
+        Wait(100)
+    end
+    
+    notification(Config.vehicleShops[_shopIndex]?.shopLabel or '[_ERROR_]', locale('tip'), 'tip')
 end
 
 local function onEnter(point)
@@ -374,12 +360,9 @@ local function mainThread()
                 else
                     shopData.point = createPoint({shopCoords = shopData.shopCoords, shopData = { label = shopData.shopLabel, icon = shopData.menuIcon, index = idx}})
                 end
-    
-
             end
             ::continue::
         end
-
         Wait(1500)
     end
 end
@@ -390,6 +373,8 @@ local function onShutDown()
 
     lib.closeAlertDialog()
     lib.hideTextUI()
+    
+    utils.teleportPlayerToLastPos()
 
     for _, shopData in pairs(Config.vehicleShops) do
         blipModule.removeBlip(shopData.blipData.blip)
@@ -445,9 +430,7 @@ RegisterNetEvent('esx:playerLoaded', function(xPlayer, isNew, skin)
 end)
 
 
-RegisterNetEvent('esx:onPlayerLogout', function()
-    onShutDown()
-end)
+RegisterNetEvent('esx:onPlayerLogout', onShutDown)
 
 local RES_NAME = GetCurrentResourceName()
 AddEventHandler('onResourceStop', function(resourceName)
@@ -468,7 +451,6 @@ lib.onCache('vehicle', function(vehicle)
 
     Wait(0)
 
-    print('D')
     SetVehicleRadioEnabled(vehicle, false)
     DisplayRadar(false)
 end)
