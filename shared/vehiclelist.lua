@@ -76,7 +76,7 @@ Config.vehicleList = {
        }},
     },
     ['planes'] = {
-        {label = locale('helis'), dbData = 'plane', values = {
+        {label = locale('helicopters'), dbData = 'plane', values = {
             {label = 'havok', vehicleModel = joaat('havok'), vehiclePrice = 1000}, 
             {label = 'nokota', vehicleModel = joaat('nokota'), vehiclePrice = 1000}, 
         }},

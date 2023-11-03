@@ -16,25 +16,6 @@ local lastIndex = nil
 local loadingVehicle = false
 local vehicleInvData = {}
 
-local function loadInventoryData()
-    vehicleInvData.inventoryStarted = GetResourceState('ox_inventory'):find('start') ~= nil
-    if not vehicleInvData.inventoryStarted then return end
-
-    local file = "data/vehicles.lua"
-    local import = LoadResourceFile("ox_inventory", file)
-    local chunk = assert(load(import, ('@@ox_inventory/%s'):format(file)))
-
-    if not chunk then
-        vehicleInvData.inventoryStarted = false
-        return
-    end
-
-    local vehData = chunk()
-
-    vehicleInvData.trunk = vehData.trunk
-    vehicleInvData.glovebox = vehData.glovebox
-end
-
 local function _spawnLocalVehicle(_shopIndex, _selected, _scrollIndex)
     vehiclePreview = utils.deleteLocalVehicle(vehiclePreview)
     if loadingVehicle or vehiclePreview then return end
@@ -104,31 +85,7 @@ local function openVehicleSubmenu(_shopIndex, _selected, _scrollIndex)
     local subMenu = {_shopIndex, _selected, _scrollIndex}
     local vData = Config.vehicleList[Config.vehicleShops[subMenu[1]].vehicleList][subMenu[2]].values[subMenu[3]]
     local vClass = GetVehicleClass(vehiclePreview)
-    local options = {
-        {close = false, icon = 'info', label = locale('vehicle_info'), 
-        values = {
-            {
-                label = locale('trunk'),
-                description = vehicleInvData.trunk[vClass] and ('%s %s - %s kg'):format(vehicleInvData.trunk[vClass][1], locale('slots'), utils.groupDigs(vehicleInvData.trunk[vClass][2], '.')) or locale('notrunk'),
-            },
-            {
-                label = locale('glovebox'),
-                description = vehicleInvData.glovebox[vClass] and ('%s %s - %s kg'):format(vehicleInvData.glovebox[vClass][1], locale('slots'), utils.groupDigs(vehicleInvData.glovebox[vClass][2], '.')) or locale('noglove'),
-            },
-            {
-                label = locale('est_speed'),
-                description = ('%.2f kmh'):format(GetVehicleModelEstimatedMaxSpeed(vData.vehicleModel) * 3.6),
-            },
-            {
-                label = locale('seats'),
-                description = GetVehicleModelNumberOfSeats(vData.vehicleModel),
-            },
-            {
-                label = locale('plate'),
-                description = GetVehicleNumberPlateText(vehiclePreview),
-            },
-        }}  
-    }
+    local options = {}
 
     if Config.vehicleColors.primary == true then
         options[#options+1] = {close = false, icon = 'droplet', label = locale('primary_color'), description = locale('primary_color_desc'), menuArg = 'primary'}
@@ -169,6 +126,7 @@ local function openVehicleSubmenu(_shopIndex, _selected, _scrollIndex)
         end,
         onClose = function(keyPressed)
             menu_caching.showMenu(_shopIndex)
+            if lib.isTextUIOpen() then lib.hideTextUI() end
         end,
         options = options
     }, function(selected, scrollIndex, args)
@@ -238,7 +196,7 @@ local function openMenu(_shopIndex)
             SetEntityVisible(cache.ped, true)
             utils.fadeIn(1000)
             Wait(500)
-
+            IS_PLAYER_IN_SHOP = false
         end,
         options = options
     }, function(selected, scrollIndex, args)
@@ -248,14 +206,17 @@ local function openMenu(_shopIndex)
             Wait(10)
         end
 
-        local vehInfo = menuOptions.getVehicleInfo(vehiclePreview, Config.vehicleShops[_shopIndex].shopLabel)
-        lib.showTextUI(vehInfo.text, vehInfo.options)
+        local vehInfo = menuOptions.getVehicleInfo(vehiclePreview, CFG_VEHICLE_CLASS[selected].values[scrollIndex])
+        if vehInfo then
+            lib.showTextUI(vehInfo.text, vehInfo.options)
+        end
 
         openVehicleSubmenu(_shopIndex, selected, scrollIndex)
     end)
 
     utils.fadeOut(500)
 
+    IS_PLAYER_IN_SHOP = true
     SetEntityVisible(cache.ped, false)
     SetEntityCoords(cache.ped, Config.vehicleShops[_shopIndex].previewCoords)
     Wait(500)
@@ -291,8 +252,6 @@ local function createPoint(data)
 end
 
 local function mainThread()
-    loadInventoryData()
-
     for _, shopData in pairs(Config.vehicleShops) do
         shopData.blipData.blip = blipModule.createBlip(shopData)
     end
@@ -374,7 +333,9 @@ local function onShutDown()
     lib.closeAlertDialog()
     lib.hideTextUI()
     
-    utils.teleportPlayerToLastPos()
+    if IS_PLAYER_IN_SHOP then
+        utils.teleportPlayerToLastPos()
+    end
 
     for _, shopData in pairs(Config.vehicleShops) do
         blipModule.removeBlip(shopData.blipData.blip)

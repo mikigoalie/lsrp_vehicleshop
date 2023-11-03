@@ -1,6 +1,11 @@
 {
+    "model": "Model",
+    "plate": "SPZ",
+    "est_speed": "Odhadovaná rychlost",
+    "seats": "sedadla",
+    "price": "Cena",
     "currencySymbol": "$",
-    "priceTag": "Cena: %s ${currencySymbol}",
+    "priceTag": "${price}: %s ${currencySymbol}",
     "open_shop": "Otevřít obchod **%s**",
     "tip": "Po výběru vozidla můžete odzkoušet zvuk motoru puštěním plynu!!",
     "not_enough_money": "Nemáš dostatek peněz k úhradě vozidla. Vozidlo stojí %s ${currencySymbol}",
@@ -11,17 +16,17 @@
     "confirm_purchase": "Opravdu si přejete koupit **%s** za %s ${currencySymbol}?",
     "cancel": "Zrušit",
     "confirm": "Potvrdit",
-    "pay_in_cash": "Zaplatit %s $ hotově",
-    "pay_in_bank": "Zaplatit %s $ by kartou",
+    "pay_in_cash": "Zaplatit %s ${currencySymbol} hotově",
+    "pay_in_bank": "Zaplatit %s ${currencySymbol} by kartou",
     "cash": "Hotovost",
     "bank": "Karta",
     "vehicle_pick_up": "Vaše vozidlo **%s** s SPZ: %s je připraveno k předání v naši garáží",
     "added_to_garage": "Vaše vozidlo**%s** s SPZ: %s bylo předáno do Vaši garáže",
     "success_bought": "Úspěšně jste si zakoupili vozidlo **%s** s SPZ: %s",
     "vehicle_info": "Informace o vozidle",
-    "est_speed": "Odhadovaná rychlost",
-    "seats": "Počet sedadel",
-    "plate": "SPZ",
+
+
+
     "license": "Toto vozidlo Vám nemůžeme prodat..",
     "colorize_vehicle": "Vyberte si barvu",
     "primary_color_desc": "Upravit primární barvu vozidla",
@@ -34,19 +39,33 @@
     "buy_for_soc": "Koupit na frakci",
     "buy_for_soc_desc": "Koupit pro sebe",
 
+
+
+
     "compacts": "Kompaktní vozidla",
+    "sedans": "Sedany",
+    "suvs": "SUV",
     "coupes": "Kupé",
     "muscles": "Muscle",
-    "offroads": "Off-Road",
-    "suvs": "SUV",
-    "sedans": "Sedany",
+    "sports classics": "Veteráni",
     "sports": "Sportovní vozidla",
-    "classics": "Veteráni",
-    "supers": "Super sporty",
+    "super": "Super sporty",
+    "motorcycles": "Motorky",
+    "off-road": "Off-Road",
+    "industrial": "Industrální",
+    "Utility": "Utility",
     "vans": "Dodávky",
     "boats": "Čluny",
+    "cycles": "Kola",
+    "helicopters": "Helikoptéry",
+    "planes": "Letadla",
+    "service": "Služební",
+    "emergency": "Služební",
+    "military": "Vojenské",
+    "commercial": "Komerční",
+    "open wheel": "Formule",
+
+
     "skis": "Skůtry",
-    "cruise_boats": "Výletní čluny",
-    "helis": "Helikoptéry",
-    "planes": "Letadla"
+    "cruise_boats": "Výletní čluny"
 }
