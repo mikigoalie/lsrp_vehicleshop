@@ -435,7 +435,7 @@ if ESX.IsPlayerLoaded() then
     CreateThread(mainThread)
 end
 
-AddEventHandler('esx:playerLoaded', function(xPlayer, isNew, skin)
+RegisterNetEvent('esx:playerLoaded', function(xPlayer, isNew, skin)
     if playerLoaded then
         return
     end
@@ -445,7 +445,7 @@ AddEventHandler('esx:playerLoaded', function(xPlayer, isNew, skin)
 end)
 
 
-AddEventHandler('esx:onPlayerLogout', function()
+RegisterNetEvent('esx:onPlayerLogout', function()
     onShutDown()
 end)
 
