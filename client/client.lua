@@ -7,14 +7,10 @@ local menu_caching = require('client.modules.caching')
 local menuOptions = require('client.modules.menuOptions')
 local generateVehNames = require('client.modules.vehicleNames')
 
-
 local vehiclePreview = nil
 local playerLoaded = false
 local IS_PLAYER_IN_SHOP = false
-local shopPoint = {}
-local lastIndex = nil
 local loadingVehicle = false
-local vehicleInvData = {}
 
 local function _spawnLocalVehicle(_shopIndex, _selected, _scrollIndex)
     vehiclePreview = utils.deleteLocalVehicle(vehiclePreview)
