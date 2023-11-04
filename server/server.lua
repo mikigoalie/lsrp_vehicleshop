@@ -26,10 +26,10 @@ lib.callback.register('lsrp_vehicleShop:server:payment', function(source, useBan
     end
 
 
-    local vehicleData = Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_secondary]
-    local vehiclePrice =vehicleData.vehiclePrice
+    local vehicleData = Config.VEHICLE_LIST[Config.vehicleShops[_shopIndex].VEHICLE_LIST][_selected].values[_secondary]
+    local VEHICLE_PRICE =vehicleData.VEHICLE_PRICE
 
-    if not tonumber(vehiclePrice) or vehiclePrice < 1000 then return false end
+    if not tonumber(VEHICLE_PRICE) or VEHICLE_PRICE < 1000 then return false end
 
     if Config.vehicleShops[_shopIndex].license then
         local gotLicense = functions.checkLicense(source, Config.vehicleShops[_shopIndex].license)
@@ -40,11 +40,11 @@ lib.callback.register('lsrp_vehicleShop:server:payment', function(source, useBan
 
 
     if not useBank then
-        return _inv:RemoveItem(source, 'money', vehiclePrice)   -- This export should be safe to use this way
+        return _inv:RemoveItem(source, 'money', VEHICLE_PRICE)   -- This export should be safe to use this way
     end
 
     local bankMoney = getBankMoney(source)
-    if bankMoney < vehiclePrice then
+    if bankMoney < VEHICLE_PRICE then
         return false
     end
 
@@ -61,9 +61,9 @@ lib.callback.register('lsrp_vehicleShop:server:addVehicle', function(source, veh
     if not xPlayer then return false end
 
     local _vehProps = vehProperties
-    local data = Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_secondary]
+    local data = Config.VEHICLE_LIST[Config.vehicleShops[_shopIndex].VEHICLE_LIST][_selected].values[_secondary]
 
-    if _vehProps.model ~= data.vehicleModel then
+    if _vehProps.model ~= data.VEHICLE_MODEL then
         return false
     end
 
@@ -71,9 +71,9 @@ lib.callback.register('lsrp_vehicleShop:server:addVehicle', function(source, veh
         _vehProps.plate = plate.getPlate()
     end
 
-    local success = MySQL.insert.await('INSERT INTO owned_vehicles (`owner`, `plate`, `vehicle`, `stored`, `type`, `name`) VALUES (?, ?, ?, ?, ?, ?)', {xPlayer.identifier, _vehProps.plate, json.encode(_vehProps), vehicleSpot ~= 0, Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].dbData, data.label})
+    local success = MySQL.insert.await('INSERT INTO owned_vehicles (`owner`, `plate`, `vehicle`, `stored`, `type`, `name`) VALUES (?, ?, ?, ?, ?, ?)', {xPlayer.identifier, _vehProps.plate, json.encode(_vehProps), vehicleSpot ~= 0, Config.VEHICLE_LIST[Config.vehicleShops[_shopIndex].VEHICLE_LIST][_selected].dbData, data.label})
     if vehicleSpot == 0 then
-        ESX.OneSync.SpawnVehicle(data.vehicleModel, Config.vehicleShops[_shopIndex].vehicleSpawnCoords.xyz, Config.vehicleShops[_shopIndex].vehicleSpawnCoords.w, _vehProps, function(NetworkId)
+        ESX.OneSync.SpawnVehicle(data.VEHICLE_MODEL, Config.vehicleShops[_shopIndex].vehicleSpawnCoords.xyz, Config.vehicleShops[_shopIndex].vehicleSpawnCoords.w, _vehProps, function(NetworkId)
             Wait(100)
             local Vehicle = NetworkGetEntityFromNetworkId(NetworkId)
             if DoesEntityExist(Vehicle) then
@@ -84,7 +84,7 @@ lib.callback.register('lsrp_vehicleShop:server:addVehicle', function(source, veh
         end)
     end
 
-    functions.log({['Vehicle model'] = data.label, ['Price'] = data.vehiclePrice, ['Plate'] = _vehProps.plate, ['Buyer'] = GetPlayerName(source), ['Player identifier'] = xPlayer.identifier, ['Payment type'] = useBank and locale('bank') or locale('cash')})
+    functions.log({['Vehicle model'] = data.label, ['Price'] = data.VEHICLE_PRICE, ['Plate'] = _vehProps.plate, ['Buyer'] = GetPlayerName(source), ['Player identifier'] = xPlayer.identifier, ['Payment type'] = useBank and locale('bank') or locale('cash')})
     
     return success, _vehProps.plate, vehicleSpot ~= 0, Vehicle
     
@@ -100,6 +100,6 @@ function getBankMoney(source)
 end
 
 function payBank(source, vehicleData)
-    local result = exports.pefcl:removeBankBalance(source, { amount = vehicleData.vehiclePrice, message = ('Zakoupení vozidla %s'):format(vehicleData.label) })
+    local result = exports.pefcl:removeBankBalance(source, { amount = vehicleData.VEHICLE_PRICE, message = ('Zakoupení vozidla %s'):format(vehicleData.label) })
     return result.status == 'ok' or false
 end

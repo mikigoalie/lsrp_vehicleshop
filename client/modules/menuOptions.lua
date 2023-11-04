@@ -44,7 +44,7 @@ menuOptions.getVehicleInfo = function(vehicle, vdata)
             PLATE, math.floor(MAX_SPEED*km), 
             SEATS,
             WEIGHT,
-            utils.groupDigs(vdata.vehiclePrice), 
+            utils.groupDigs(vdata.VEHICLE_PRICE), 
             locale('currencySymbol')
         ), 
         options = {
@@ -64,7 +64,7 @@ menuOptions.generateMenuOptions = function(CFG_VEHICLE_CLASS)
 
     for classIndex, classInfo in pairs(CFG_VEHICLE_CLASS) do
         for i=1, #classInfo.values do
-            classInfo.values[i].description = locale('priceTag', utils.groupDigs(classInfo.values[i].vehiclePrice))
+            classInfo.values[i].description = locale('priceTag', utils.groupDigs(classInfo.values[i].VEHICLE_PRICE))
         end
         
         options[#options+1] = {

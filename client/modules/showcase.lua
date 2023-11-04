@@ -1,7 +1,7 @@
 return function(properties, i)
     if not properties then return false end
 
-    properties.handle = CreateVehicle(properties.vehicleModel, properties.coords.xyz, properties.coords.w, false, false)
+    properties.handle = CreateVehicle(properties.SHOWCASE_VEHICLE_MODEL, properties.coords.xyz, properties.coords.w, false, false)
 
     SetVehicleIsConsideredByPlayer(properties.handle, false)
     SetEntityAsMissionEntity(properties.handle)

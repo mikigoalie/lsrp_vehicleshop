@@ -21,13 +21,13 @@ local function _spawnLocalVehicle(_shopIndex, _selected, _scrollIndex)
     if loadingVehicle or vehiclePreview then return end
 
     local _data = Config.vehicleShops[_shopIndex]
-    local _model = Config.vehicleList[_data.vehicleList][_selected].values[_scrollIndex].vehicleModel
+    local _model = Config.VEHICLE_LIST[_data.VEHICLE_LIST][_selected].values[_scrollIndex].VEHICLE_MODEL
     loadingVehicle = true
     if not utils.loadModel(_model) then 
         loadingVehicle = false
         return 
     end
-    vehiclePreview = CreateVehicle(_model, _data.previewCoords.x, _data.previewCoords.y, _data.previewCoords.z, _data.previewCoords.w, false,false)
+    vehiclePreview = CreateVehicle(_model, _data.PREVIEW_COORDS.x, _data.PREVIEW_COORDS.y, _data.PREVIEW_COORDS.z, _data.PREVIEW_COORDS.w, false,false)
     utils.setVehicleProperties(vehiclePreview)
     SetPedIntoVehicle(cache.ped, vehiclePreview, -1)
     loadingVehicle = false
@@ -38,8 +38,8 @@ end
 local function proceedPayment(useBank, _shopIndex, _selected, _secondary)
     if not useBank then
         local count = _inv:Search('count', 'money')
-        if count < Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_secondary].vehiclePrice then
-            notification(Config.vehicleShops[_shopIndex]?.shopLabel, locale('not_enough_money', Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_secondary].vehiclePrice), 'error')
+        if count < Config.VEHICLE_LIST[Config.vehicleShops[_shopIndex].VEHICLE_LIST][_selected].values[_secondary].VEHICLE_PRICE then
+            notification(Config.vehicleShops[_shopIndex]?.SHOP_LABEL, locale('not_enough_money', Config.VEHICLE_LIST[Config.vehicleShops[_shopIndex].VEHICLE_LIST][_selected].values[_secondary].VEHICLE_PRICE), 'error')
             menu_caching.showMenu(_shopIndex)
             return
         end
@@ -47,13 +47,13 @@ local function proceedPayment(useBank, _shopIndex, _selected, _secondary)
 
 	local success = lib.callback.await('lsrp_vehicleShop:server:payment', false, useBank, _shopIndex, _selected, _secondary)
     if not success then
-        notification(Config.vehicleShops[_shopIndex]?.shopLabel or '[_ERROR_]', locale('transaction_error'), 'error')
+        notification(Config.vehicleShops[_shopIndex]?.SHOP_LABEL or '[_ERROR_]', locale('transaction_error'), 'error')
         menu_caching.showMenu(_shopIndex)
         return
     end
 
     if success == 'license' then
-        notification(Config.vehicleShops[_shopIndex]?.shopLabel or '[_ERROR_]', locale('license'), 'error')
+        notification(Config.vehicleShops[_shopIndex]?.SHOP_LABEL or '[_ERROR_]', locale('license'), 'error')
         menu_caching.showMenu(_shopIndex)
         return
     end
@@ -61,29 +61,29 @@ local function proceedPayment(useBank, _shopIndex, _selected, _secondary)
 	if success then
 		local vehicleAdded, vehiclePlate, spotTaken, netId = lib.callback.await('lsrp_vehicleShop:server:addVehicle', 500, lib.getVehicleProperties(vehiclePreview), #lib.getNearbyVehicles(Config.vehicleShops[_shopIndex].vehicleSpawnCoords.xyz, 3, true), _shopIndex, _selected, _secondary, useBank)
         if vehicleAdded then
-            local data = Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_secondary]
+            local data = Config.VEHICLE_LIST[Config.vehicleShops[_shopIndex].VEHICLE_LIST][_selected].values[_secondary]
             utils.fadeOut(500)
             if vehiclePreview then
                 vehiclePreview = utils.deleteLocalVehicle(vehiclePreview)
             end
 			PlaySoundFrontend(-1, 'Pre_Screen_Stinger', 'DLC_HEISTS_FAILED_SCREEN_SOUNDS', 0)
-            notification(Config.vehicleShops[_shopIndex]?.shopLabel, locale('success_bought', Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_secondary].label, vehiclePlate), 'success')
+            notification(Config.vehicleShops[_shopIndex]?.SHOP_LABEL, locale('success_bought', Config.VEHICLE_LIST[Config.vehicleShops[_shopIndex].VEHICLE_LIST][_selected].values[_secondary].label, vehiclePlate), 'success')
 			Wait(1000)
             utils.teleportPlayerToLastPos()
             SetEntityVisible(cache.ped, true)
             utils.fadeIn(1000)
-            notification(Config.vehicleShops[_shopIndex]?.shopLabel or '[_ERROR_]', not spotTaken and locale('vehicle_pick_up', data.label, vehiclePlate) or locale('added_to_garage', data.label, vehiclePlate), 'success')
+            notification(Config.vehicleShops[_shopIndex]?.SHOP_LABEL or '[_ERROR_]', not spotTaken and locale('vehicle_pick_up', data.label, vehiclePlate) or locale('added_to_garage', data.label, vehiclePlate), 'success')
             npc.deleteFromVeh(NetToVeh(netId))
             return
 		end
 
-        notification(Config.vehicleShops[_shopIndex]?.shopLabel or '[_ERROR_]', locale('error_while_saving'), 'error')
+        notification(Config.vehicleShops[_shopIndex]?.SHOP_LABEL or '[_ERROR_]', locale('error_while_saving'), 'error')
 	end
 end
 
 local function openVehicleSubmenu(_shopIndex, _selected, _scrollIndex)
     local subMenu = {_shopIndex, _selected, _scrollIndex}
-    local vData = Config.vehicleList[Config.vehicleShops[subMenu[1]].vehicleList][subMenu[2]].values[subMenu[3]]
+    local vData = Config.VEHICLE_LIST[Config.vehicleShops[subMenu[1]].VEHICLE_LIST][subMenu[2]].values[subMenu[3]]
     local vClass = GetVehicleClass(vehiclePreview)
     local options = {}
 
@@ -106,12 +106,12 @@ local function openVehicleSubmenu(_shopIndex, _selected, _scrollIndex)
         values = {
             {
                 label = locale('cash'), 
-                description = locale('pay_in_cash', vData.vehiclePrice),
+                description = locale('pay_in_cash', vData.VEHICLE_PRICE),
                 method = 'cash'
             }, 
             {
                 label = locale('bank'), 
-                description = locale('pay_in_bank', vData.vehiclePrice),
+                description = locale('pay_in_bank', vData.VEHICLE_PRICE),
                 method = 'bank'
             }
         },
@@ -133,8 +133,8 @@ local function openVehicleSubmenu(_shopIndex, _selected, _scrollIndex)
         if not selected then return end
         if options[selected].menuArg == 'payment' then
             local alert = lib.alertDialog({
-                header = Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_scrollIndex].label,
-                content = locale('confirm_purchase',Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_scrollIndex].label, utils.groupDigs(Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList][_selected].values[_scrollIndex].vehiclePrice)),
+                header = Config.VEHICLE_LIST[Config.vehicleShops[_shopIndex].VEHICLE_LIST][_selected].values[_scrollIndex].label,
+                content = locale('confirm_purchase',Config.VEHICLE_LIST[Config.vehicleShops[_shopIndex].VEHICLE_LIST][_selected].values[_scrollIndex].label, utils.groupDigs(Config.VEHICLE_LIST[Config.vehicleShops[_shopIndex].VEHICLE_LIST][_selected].values[_scrollIndex].VEHICLE_PRICE)),
                 centered = true,
                 cancel = true,
                 labels = {confirm = locale('confirm'), cancel = locale('cancel')}
@@ -173,12 +173,12 @@ end
 local function openMenu(_shopIndex)
     utils.setLastCoords()
 
-    local CFG_VEHICLE_CLASS = Config.vehicleList[Config.vehicleShops[_shopIndex].vehicleList]
+    local CFG_VEHICLE_CLASS = Config.VEHICLE_LIST[Config.vehicleShops[_shopIndex].VEHICLE_LIST]
     local options = menuOptions.generateMenuOptions(CFG_VEHICLE_CLASS)
 
     lib.registerMenu({
         id = 'vehicleshop',
-        title = Config.vehicleShops[_shopIndex].shopLabel,
+        title = Config.vehicleShops[_shopIndex].SHOP_LABEL,
         position = Config.menuPosition == 'right' and 'top-right' or 'top-left',
         onSideScroll = function(selected, scrollIndex, args)
             menu_caching.scrollCache(CFG_VEHICLE_CLASS[selected], scrollIndex)
@@ -218,7 +218,7 @@ local function openMenu(_shopIndex)
 
     IS_PLAYER_IN_SHOP = true
     SetEntityVisible(cache.ped, false)
-    SetEntityCoords(cache.ped, Config.vehicleShops[_shopIndex].previewCoords)
+    SetEntityCoords(cache.ped, Config.vehicleShops[_shopIndex].PREVIEW_COORDS)
     Wait(500)
     utils.fadeIn(1000)
 
@@ -227,7 +227,7 @@ local function openMenu(_shopIndex)
         Wait(100)
     end
     
-    notification(Config.vehicleShops[_shopIndex]?.shopLabel or '[_ERROR_]', locale('tip'), 'tip')
+    notification(Config.vehicleShops[_shopIndex]?.SHOP_LABEL or '[_ERROR_]', locale('tip'), 'tip')
 end
 
 local function onEnter(point)
@@ -248,31 +248,31 @@ local function nearby(point)
 end
 
 local function createPoint(data)
-	return lib.points.new(data.shopCoords, Config.textDistance, {nearby = nearby, onEnter = onEnter, onExit = onExit, shop = data.shopData})
+	return lib.points.new(data.SHOP_COORDS, Config.textDistance, {nearby = nearby, onEnter = onEnter, onExit = onExit, shop = data.shopData})
 end
 
 local function mainThread()
     for _, shopData in pairs(Config.vehicleShops) do
-        shopData.blipData.blip = blipModule.createBlip(shopData)
+        shopData.BLIP_DATA.blip = blipModule.createBlip(shopData)
     end
 
     while playerLoaded do
 		local playerCoords = GetEntityCoords(cache.ped)
 
         for idx, shopData in pairs(Config.vehicleShops) do
-            if #(playerCoords - shopData.shopCoords) > 200.0 then
+            if #(playerCoords - shopData.SHOP_COORDS) > 200.0 then
                 if shopData.point then
                     shopData.point:remove()
                     shopData.point = nil
                 end
-                if shopData.npcData.npc then
-                    DeleteEntity(shopData.npcData.npc)
-                    shopData.npcData.npc = nil
+                if shopData.NPC_DATA.npc then
+                    DeleteEntity(shopData.NPC_DATA.npc)
+                    shopData.NPC_DATA.npc = nil
                 end
-                if shopData.showcaseVehicle then
-                    for i=1, #shopData.showcaseVehicle do
-                        if shopData.showcaseVehicle[i].handle then
-                            while utils.deleteLocalVehicle(shopData.showcaseVehicle[i].handle) do
+                if shopData.SHOWCASE_VEHICLES then
+                    for i=1, #shopData.SHOWCASE_VEHICLES do
+                        if shopData.SHOWCASE_VEHICLES[i].handle then
+                            while utils.deleteLocalVehicle(shopData.SHOWCASE_VEHICLES[i].handle) do
                                 Wait(100)
                             end
                         end
@@ -283,33 +283,33 @@ local function mainThread()
             end
 
             
-            if #(playerCoords - shopData.shopCoords) < 150.0 then
-                if shopData.point or shopData?.npcData?.npc then
+            if #(playerCoords - shopData.SHOP_COORDS) < 150.0 then
+                if shopData.point or shopData?.NPC_DATA?.npc then
                     goto continue
                 end
 
-                if not shopData.showcaseVehicle then
+                if not shopData.SHOWCASE_VEHICLES then
                     goto skip_showcase
                 end
 
-                for i=1, #shopData.showcaseVehicle do
-                    local showcase_vehicle = shopData.showcaseVehicle[i]
-                    if not IsModelInCdimage(showcase_vehicle.vehicleModel) then return end
-                    local modelLoaded = lib.requestModel(showcase_vehicle.vehicleModel, 1000)
+                for i=1, #shopData.SHOWCASE_VEHICLES do
+                    local showcase_vehicle = shopData.SHOWCASE_VEHICLES[i]
+                    if not IsModelInCdimage(showcase_vehicle.SHOWCASE_VEHICLE_MODEL) then return end
+                    local modelLoaded = lib.requestModel(showcase_vehicle.SHOWCASE_VEHICLE_MODEL, 1000)
                     if not modelLoaded then return end
                     showcase_vehicle.handle = create_showcase_vehicle(showcase_vehicle, i)
                 end
 
                 :: skip_showcase ::
 
-                shopData.npcData.npc = npc.create(shopData.npcData.model, shopData.npcData.position)
+                shopData.NPC_DATA.npc = npc.create(shopData.NPC_DATA.model, shopData.NPC_DATA.position)
 
                 if Config.oxTarget then
-                    exports.ox_target:addLocalEntity(shopData.npcData.npc, {
+                    exports.ox_target:addLocalEntity(shopData.NPC_DATA.npc, {
                         {
                             name = 'vehicleshop',
-                            icon = shopData.menuIcon or 'car',
-                            label = locale('open_shop', shopData.shopLabel or '_ERROR'),
+                            icon = shopData.MENU_ICON or 'car',
+                            label = locale('open_shop', shopData.SHOP_LABEL or '_ERROR'),
                             distance = 2.5,
                             onSelect = function(data)
                                 openMenu(idx)
@@ -317,7 +317,7 @@ local function mainThread()
                         }
                     })
                 else
-                    shopData.point = createPoint({shopCoords = shopData.shopCoords, shopData = { label = shopData.shopLabel, icon = shopData.menuIcon, index = idx}})
+                    shopData.point = createPoint({SHOP_COORDS = shopData.SHOP_COORDS, shopData = { label = shopData.SHOP_LABEL, icon = shopData.MENU_ICON, index = idx}})
                 end
             end
             ::continue::
@@ -338,25 +338,25 @@ local function onShutDown()
     end
 
     for _, shopData in pairs(Config.vehicleShops) do
-        blipModule.removeBlip(shopData.blipData.blip)
+        blipModule.removeBlip(shopData.BLIP_DATA.blip)
         
         if shopData.point then
             shopData.point:remove()
             shopData.point = nil
         end
 
-        if shopData.npcData.npc then
-            DeletePed(shopData.npcData.npc)
-            shopData.npcData.npc = nil
+        if shopData.NPC_DATA.npc then
+            DeletePed(shopData.NPC_DATA.npc)
+            shopData.NPC_DATA.npc = nil
         end
 
-        if shopData.showcaseVehicle then
-            for i=1, #shopData.showcaseVehicle do
-                if shopData.showcaseVehicle[i].handle then
+        if shopData.SHOWCASE_VEHICLES then
+            for i=1, #shopData.SHOWCASE_VEHICLES do
+                if shopData.SHOWCASE_VEHICLES[i].handle then
                     CreateThread(function()
-                        while DoesEntityExist(shopData.showcaseVehicle[i].handle) do
-                            SetEntityAsMissionEntity(shopData.showcaseVehicle[i].handle)
-                            DeleteEntity(shopData.showcaseVehicle[i].handle)
+                        while DoesEntityExist(shopData.SHOWCASE_VEHICLES[i].handle) do
+                            SetEntityAsMissionEntity(shopData.SHOWCASE_VEHICLES[i].handle)
+                            DeleteEntity(shopData.SHOWCASE_VEHICLES[i].handle)
                             Wait(100)
                         end
                     end)
