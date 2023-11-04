@@ -73,7 +73,7 @@ lib.callback.register('lsrp_vehicleShop:server:addVehicle', function(source, veh
 
     local success = MySQL.insert.await('INSERT INTO owned_vehicles (`owner`, `plate`, `vehicle`, `stored`, `type`, `name`) VALUES (?, ?, ?, ?, ?, ?)', {xPlayer.identifier, _vehProps.plate, json.encode(_vehProps), vehicleSpot ~= 0, Config.VEHICLE_LIST[Config.vehicleShops[_shopIndex].VEHICLE_LIST][_selected].dbData, data.label})
     if vehicleSpot == 0 then
-        ESX.OneSync.SpawnVehicle(data.VEHICLE_MODEL, Config.vehicleShops[_shopIndex].vehicleSpawnCoords.xyz, Config.vehicleShops[_shopIndex].vehicleSpawnCoords.w, _vehProps, function(NetworkId)
+        ESX.OneSync.SpawnVehicle(data.VEHICLE_MODEL, Config.vehicleShops[_shopIndex].PURCHASED_VEHICLE_SPAWNS.xyz, Config.vehicleShops[_shopIndex].PURCHASED_VEHICLE_SPAWNS.w, _vehProps, function(NetworkId)
             Wait(100)
             local Vehicle = NetworkGetEntityFromNetworkId(NetworkId)
             if DoesEntityExist(Vehicle) then

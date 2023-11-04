@@ -9,7 +9,6 @@ local generateVehNames = require('client.modules.vehicleNames')
 
 local vehiclePreview = nil
 local playerLoaded = false
-local IS_PLAYER_IN_SHOP = false
 local loadingVehicle = false
 
 local function _spawnLocalVehicle(_shopIndex, _selected, _scrollIndex)
@@ -55,7 +54,7 @@ local function proceedPayment(useBank, _shopIndex, _selected, _secondary)
     end
 
 	if success then
-		local vehicleAdded, vehiclePlate, spotTaken, netId = lib.callback.await('lsrp_vehicleShop:server:addVehicle', 500, lib.getVehicleProperties(vehiclePreview), #lib.getNearbyVehicles(Config.vehicleShops[_shopIndex].vehicleSpawnCoords.xyz, 3, true), _shopIndex, _selected, _secondary, useBank)
+		local vehicleAdded, vehiclePlate, spotTaken, netId = lib.callback.await('lsrp_vehicleShop:server:addVehicle', 500, lib.getVehicleProperties(vehiclePreview), #lib.getNearbyVehicles(Config.vehicleShops[_shopIndex].PURCHASED_VEHICLE_SPAWNS.xyz, 3, true), _shopIndex, _selected, _secondary, useBank)
         if vehicleAdded then
             local data = Config.VEHICLE_LIST[Config.vehicleShops[_shopIndex].VEHICLE_LIST][_selected].values[_secondary]
             utils.fadeOut(500)
@@ -83,20 +82,12 @@ local function openVehicleSubmenu(_shopIndex, _selected, _scrollIndex)
     local vClass = GetVehicleClass(vehiclePreview)
     local options = {}
 
-    if Config.vehicleColors.primary == true then
-        options[#options+1] = {close = false, icon = 'droplet', label = locale('primary_color'), description = locale('primary_color_desc'), menuArg = 'primary'}
-    end
-    
-    if Config.vehicleColors.secondary == true then
-        options[#options+1] = {close = false, icon = 'fill-drip', label = locale('secondary_color'), description = locale('secondary_color_desc'), menuArg = 'secondary'}
-    end
-
     if ESX.PlayerData.job.grade_name == 'boss' then
         options[#options+1] = {close = false, icon = 'warehouse', label = locale('buy_for_society'), description = locale('buy_for_soc_desc'), checked = false, menuArg = 'society'}
     end
 
     options[#options+1] = {
-        label = 'Platba',
+        label = locale('payment'),
         icon = 'credit-card',
         menuArg = 'payment',
         values = {
@@ -114,66 +105,39 @@ local function openVehicleSubmenu(_shopIndex, _selected, _scrollIndex)
     }
     
     lib.registerMenu({
-        id = 'openVehicleSubmenu',
+        id = 'lsrp_vehicleshop:submenu1',
         title = vData.label,
         position = Config.menuPosition == 'right' and 'top-right' or 'top-left',
-        onSideScroll = function(selected, scrollIndex, args)
-            if not options[selected].menuArg then return end 
-        end,
         onClose = function(keyPressed)
-            menu_caching.showMenu(_shopIndex)
             if lib.isTextUIOpen() then lib.hideTextUI() end
+            menu_caching.showMenu(_shopIndex)
         end,
         options = options
     }, function(selected, scrollIndex, args)
+        if lib.isTextUIOpen() then lib.hideTextUI() end
         if not selected then return end
         if options[selected].menuArg == 'payment' then
-            local alert = lib.alertDialog({
+            if (lib.alertDialog({
                 header = Config.VEHICLE_LIST[Config.vehicleShops[_shopIndex].VEHICLE_LIST][_selected].values[_scrollIndex].label,
                 content = locale('confirm_purchase',Config.VEHICLE_LIST[Config.vehicleShops[_shopIndex].VEHICLE_LIST][_selected].values[_scrollIndex].label, utils.groupDigs(Config.VEHICLE_LIST[Config.vehicleShops[_shopIndex].VEHICLE_LIST][_selected].values[_scrollIndex].VEHICLE_PRICE)),
                 centered = true,
                 cancel = true,
                 labels = {confirm = locale('confirm'), cancel = locale('cancel')}
-            })
-            
-            if alert ~= 'confirm' then
-                menu_caching.showMenu(_shopIndex)
-                return
-            end
-
-            proceedPayment(options[selected].values[scrollIndex].method == 'bank', _shopIndex, _selected, _scrollIndex)
-            return
-        end
-
-        if options[selected].menuArg == 'primary' or options[selected].menuArg == 'secondary' then
-            lib.hideMenu(false)
-            Wait(100)
-            local input = lib.inputDialog(locale('colorize_vehicle'), {
-                {type = 'color', default = '#eb4034'},
-            })
-            if input then
-                local r, g, b = utils.hex2rgb(input[1])
-                if options[selected].menuArg == 'primary' then
-                    SetVehicleCustomPrimaryColour(vehiclePreview, r or 255, g or 0, b or 0)
-                else
-                    SetVehicleCustomSecondaryColour(vehiclePreview, r or 255, g or 0, b or 0)
-                end
-            end
-            openVehicleSubmenu(subMenu[1], subMenu[2], subMenu[3])
-            return
+            })) == 'confirm' then
+                proceedPayment(options[selected].values[scrollIndex].method == 'bank', _shopIndex, _selected, _scrollIndex)
+            else menu_caching.showMenu(_shopIndex) end return
         end
     end)
-    lib.showMenu('openVehicleSubmenu')
+    lib.showMenu('lsrp_vehicleshop:submenu1')
 end
 
 local function openMenu(_shopIndex)
     utils.setLastCoords()
 
     local CFG_VEHICLE_CLASS = Config.VEHICLE_LIST[Config.vehicleShops[_shopIndex].VEHICLE_LIST]
-    local options = menuOptions.generateMenuOptions(CFG_VEHICLE_CLASS)
 
     lib.registerMenu({
-        id = 'vehicleshop',
+        id = 'lsrp_vehicleshop:main',
         title = Config.vehicleShops[_shopIndex].SHOP_LABEL,
         position = Config.menuPosition == 'right' and 'top-right' or 'top-left',
         onSideScroll = function(selected, scrollIndex, args)
@@ -192,9 +156,8 @@ local function openMenu(_shopIndex)
             SetEntityVisible(cache.ped, true)
             utils.fadeIn(1000)
             Wait(500)
-            IS_PLAYER_IN_SHOP = false
         end,
-        options = options
+        options = menuOptions.generateMenuOptions(CFG_VEHICLE_CLASS)
     }, function(selected, scrollIndex, args)
         if not selected or not scrollIndex then return end
         while not cache.vehicle and vehiclePreview do
@@ -212,12 +175,10 @@ local function openMenu(_shopIndex)
 
     utils.fadeOut(500)
 
-    IS_PLAYER_IN_SHOP = true
     SetEntityVisible(cache.ped, false)
     SetEntityCoords(cache.ped, Config.vehicleShops[_shopIndex].PREVIEW_COORDS)
     Wait(500)
     utils.fadeIn(1000)
-
     menu_caching.showMenu(_shopIndex)
     while not cache.vehicle do
         Wait(100)
@@ -236,7 +197,7 @@ end
 
 local function nearby(point)
     if point.currentDistance <= 2 then
-        if IsControlJustPressed(0, 38) and IS_PLAYER_IN_SHOP == false then
+        if IsControlJustPressed(0, 38) and not utils.isPlayerInShopMenu() then
             lib.hideTextUI()
             openMenu(point.shop.index)
         end
@@ -326,12 +287,13 @@ end
 local function onShutDown()
     playerLoaded = false
 
+    if utils.isPlayerInShopMenu() then
+        utils.teleportPlayerToLastPos()
+        lib.hideMenu(false)
+    end
+
     lib.closeAlertDialog()
     lib.hideTextUI()
-    
-    if IS_PLAYER_IN_SHOP then
-        utils.teleportPlayerToLastPos()
-    end
 
     for _, shopData in pairs(Config.vehicleShops) do
         blipModule.removeBlip(shopData.BLIP_DATA.blip)

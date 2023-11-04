@@ -10,7 +10,7 @@ caches.selectCache = function(shopCat, selectIdx)
 end
 
 caches.showMenu = function(shopIndex)
-    lib.showMenu('vehicleshop', Config.vehicleShops[shopIndex].cachedIndex or 1)
+    lib.showMenu('lsrp_vehicleshop:main', Config.vehicleShops[shopIndex].cachedIndex or 1)
 end
 
 return caches

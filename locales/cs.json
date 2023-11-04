@@ -24,7 +24,7 @@
     "added_to_garage": "Vaše vozidlo**%s** s SPZ: %s bylo předáno do Vaši garáže",
     "success_bought": "Úspěšně jste si zakoupili vozidlo **%s** s SPZ: %s",
     "vehicle_info": "Informace o vozidle",
-
+    "payment": "Platba",
 
 
     "license": "Toto vozidlo Vám nemůžeme prodat..",

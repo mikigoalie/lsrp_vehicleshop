@@ -82,7 +82,12 @@ local function setVehicleProperties(vehicle)
     end
 end
 
+local function isPlayerInShopMenu()
+    local menu = lib.getOpenMenu()
+    if not menu then return false end
 
+    return string.find(menu, "lsrp_vehicleshop") and true
+end
 
 return {
     hex2rgb = hex2rgb,
@@ -94,5 +99,6 @@ return {
     teleportPlayerToLastPos = teleportPlayerToLastPos,
     deleteLocalVehicle = deleteLocalVehicle,
     loadModel = loadModel,
-    setVehicleProperties = setVehicleProperties
+    setVehicleProperties = setVehicleProperties,
+    isPlayerInShopMenu = isPlayerInShopMenu,
 }
