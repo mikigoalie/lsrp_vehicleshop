@@ -16,11 +16,13 @@ return function(properties, i)
     FreezeEntityPosition(properties.handle, true)
     SetVehicleHasUnbreakableLights(properties.handle, true)
     SetDisableVehicleWindowCollisions(properties.handle, true)
-    if properties.color[1] == 'chameleon' then
-        SetVehicleModKit(properties.handle, 0)
-        SetVehicleColours(properties.handle, properties.color[2], properties.color[2])
-    else
-        SetVehicleCustomPrimaryColour(properties.handle, properties.color[1] or 255, properties.color[2] or 0, properties.color[3] or 0)
+    if properties.color then
+        if properties.color[1] == 'chameleon' then
+            SetVehicleModKit(properties.handle, 0)
+            SetVehicleColours(properties.handle, properties.color[2], properties.color[2])
+        else
+            SetVehicleCustomPrimaryColour(properties.handle, properties.color[1] or 255, properties.color[2] or 0, properties.color[3] or 0)
+        end
     end
 
     return properties.handle

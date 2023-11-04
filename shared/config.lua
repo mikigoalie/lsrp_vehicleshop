@@ -18,9 +18,8 @@ Config.vehicleColors = {    -- Allow custom RGB Colors for primary and secondary
 --[[ Vehicle shops configuration ]]--
 Config.vehicleShops = {
     {
-        menuIcon = 'fa-solid fa-car',
-        menuColor = "red",
         shopLabel = 'Deluxe Motorsport',
+        menuIcon = 'fa-solid fa-car',
         shopCoords = vec3(-32.7748, -1095.4304, 27.2744), 
         previewCoords = vec4(-47.6072, -1092.1250, 26.7543, 90.0), 
         vehicleSpawnCoords = vec4(-23.6204, -1094.3016, 27.0452, 339.1980),
@@ -29,7 +28,7 @@ Config.vehicleShops = {
         npcData = {model = joaat('IG_Avon'), position = vec4(-30.7224, -1096.5004, 26.2744, 68.4467)},
         showcaseVehicle = {
             {vehicleModel = joaat('oracxsle'), coords = vec4(-49.8157, -1083.6610, 26.23, 199.9693), color = {255, 128, 32}},
-            {vehicleModel = joaat('cypherct'), coords = vec4(-54.7802, -1096.9150, 26.1577, 297.9555), color = {255, 255, 255}},
+            {vehicleModel = joaat('cypherct'), coords = vec4(-54.7802, -1096.9150, 26.1577, 297.9555)},
             {vehicleModel = joaat('argento'), coords = vec4(-42.3705, -1101.3069, 26.5423, 350.3064), color = {'chameleon', 175}},
             {vehicleModel = joaat('sunrise1'), coords = vec4(-36.6870, -1093.3662, 26.2255, 153.1380), color = {'chameleon', 161}},
         }
@@ -38,7 +37,6 @@ Config.vehicleShops = {
     {
         shopLabel = 'Premium Deluxe Motorsport',
         menuIcon = 'fa-solid fa-car',
-        menuColor = "red",
         shopCoords = vec3(-1256.6936, -367.5191, 36.9074), 
         previewCoords = vec4(-1255.8885, -354.4863, 36.6496, 69.0134), 
         vehicleSpawnCoords = vec4(-1234.7506, -352.5141, 36.9216, 348.5213),

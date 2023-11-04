@@ -36,9 +36,17 @@ menuOptions.getVehicleInfo = function(vehicle, vdata)
     local SEATS = GetVehicleModelNumberOfSeats(GetEntityModel(vehicle))
     local PLATE = GetVehicleNumberPlateText(vehicle)
     local STORAGE = GetVehicleClass(vehicle)
-    
+    local WEIGHT = GetVehicleHandlingFloat(vehicle, 'CHandlingData', 'fMass')
+
     return { 
-        text = ('**Model**: *%s*  \n**Plate**: *%s*  \n**Estimated speed**: *%s km/h*  \n**Number of seats**: *%s*  \n**Price**: *%s*%s'):format(vdata.label, PLATE, math.floor(MAX_SPEED*km), SEATS, utils.groupDigs(vdata.vehiclePrice), locale('currencySymbol')), 
+        text = ('**Model**: *%s*  \n**Plate**: *%s*  \n**Estimated speed**: *%s km/h*  \n**Number of seats**: *%s*  \n**Weight**:  *%s kg*  \n**Price**: *%s %s*'):format(
+            vdata.label, 
+            PLATE, math.floor(MAX_SPEED*km), 
+            SEATS,
+            WEIGHT,
+            utils.groupDigs(vdata.vehiclePrice), 
+            locale('currencySymbol')
+        ), 
         options = {
             position = Config.menuPosition == 'right' and 'left-center' or 'right-center',
             style = {
