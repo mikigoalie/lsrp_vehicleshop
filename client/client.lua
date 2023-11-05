@@ -303,13 +303,9 @@ local function onShutDown()
         if shopData.SHOWCASE_VEHICLES and next(shopData.SHOWCASE_VEHICLES) then
             for i=1, #shopData.SHOWCASE_VEHICLES do
                 if shopData.SHOWCASE_VEHICLES[i].handle then
-                    CreateThread(function()
-                        while DoesEntityExist(shopData.SHOWCASE_VEHICLES[i].handle) do
-                            SetEntityAsMissionEntity(shopData.SHOWCASE_VEHICLES[i].handle)
-                            DeleteEntity(shopData.SHOWCASE_VEHICLES[i].handle)
-                            Wait(100)
-                        end
-                    end)
+                    while utils.deleteLocalVehicle(shopData.SHOWCASE_VEHICLES[i].handle) do
+                        Wait(100)
+                    end
                 end
             end
         end
