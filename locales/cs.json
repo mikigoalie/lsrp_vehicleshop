@@ -13,7 +13,7 @@
     "error_while_saving": "Při ukládání vozidla nastala chyba",
     "primary_color": "Primární barva",
     "secondary_color": "Sekundární barva",
-    "confirm_purchase": "Opravdu si přejete koupit **%s** za %s ${currencySymbol}?",
+    "confirm_purchase": "> Opravdu si přejete koupit **%s** za **%s** ${currencySymbol}?",
     "cancel": "Zrušit",
     "confirm": "Potvrdit",
     "pay_in_cash": "Zaplatit %s ${currencySymbol} hotově",
