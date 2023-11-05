@@ -25,5 +25,7 @@ return function(properties, i)
         end
     end
 
+    SetModelAsNoLongerNeeded(properties.SHOWCASE_VEHICLE_MODEL)
+
     return properties.handle
 end
