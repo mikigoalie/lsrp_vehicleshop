@@ -17,15 +17,7 @@ local function SendWebHook(text)
 end
 
 local functions = {}
-functions.checkLicense = function(source, license)
-    if not license then return false end
 
-    local xPlayer = ESX.GetPlayerFromId(source)
-    if not xPlayer then return false end
-
-    local result = db.select('SELECT `type` FROM `user_licenses` WHERE `owner` = ? AND `type` = ?', { xPlayer.identifier, license })
-    return next(result) and true or false
-end
 
 
 functions.log = function(text)
