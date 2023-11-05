@@ -19,16 +19,7 @@ local function fadeIn(duration)
     DoScreenFadeIn(duration or 1000)
 end
 
-local function dprint(text, debugLevel)
-    if not text then
-        return
-    end
 
-
-    debugLevel = debugLevel or "debug"
-
-    print(('^6[LSRP_Vehicleshop]: ^6%s^7'):format(text))
-end
 
 
 local lastCoords = false
@@ -89,16 +80,22 @@ local function isPlayerInShopMenu()
     return string.find(menu, "lsrp_vehicleshop") and true
 end
 
+local function playSound(name, bank)
+    StopSound(9)
+    PlaySoundFrontend(9, name, bank, 0)
+end
+
+
 return {
     hex2rgb = hex2rgb,
     groupDigs = groupDigs,
     fadeOut = fadeOut,
     fadeIn = fadeIn,
-    dprint = dprint,
     setLastCoords = setLastCoords,
     teleportPlayerToLastPos = teleportPlayerToLastPos,
     deleteLocalVehicle = deleteLocalVehicle,
     loadModel = loadModel,
     setVehicleProperties = setVehicleProperties,
     isPlayerInShopMenu = isPlayerInShopMenu,
+    playSound = playSound
 }
