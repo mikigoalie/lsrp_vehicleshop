@@ -6,22 +6,25 @@ local create_showcase_vehicle = require('client.modules.showcase')
 local menu_caching = require('client.modules.caching')
 local menuOptions = require('client.modules.menuOptions')
 local generateVehNames = require('client.modules.vehicleNames')
+local mapper = require('shared.modules.configMapper')
+local dprint = require('shared.modules.dprint')
 
 local vehiclePreview = nil
 local playerLoaded = false
 local loadingVehicle = false
 
 local function _spawnLocalVehicle(_shopIndex, _selected, _scrollIndex)
+    local _data = Config.vehicleShops[_shopIndex]
+    local _model = Config.VEHICLE_LIST[_data.VEHICLE_LIST][_selected].values[_scrollIndex].VEHICLE_MODEL
+
+    if GetEntityModel(vehiclePreview) == _model then return end
+
     vehiclePreview = utils.deleteLocalVehicle(vehiclePreview)
     if loadingVehicle or vehiclePreview then return end
 
-    local _data = Config.vehicleShops[_shopIndex]
-    local _model = Config.VEHICLE_LIST[_data.VEHICLE_LIST][_selected].values[_scrollIndex].VEHICLE_MODEL
+
     loadingVehicle = true
-    if not utils.loadModel(_model) then 
-        loadingVehicle = false
-        return 
-    end
+    if not utils.loadModel(_model) then  loadingVehicle = false return end
     vehiclePreview = CreateVehicle(_model, _data.PREVIEW_COORDS.x, _data.PREVIEW_COORDS.y, _data.PREVIEW_COORDS.z, _data.PREVIEW_COORDS.w, false,false)
     utils.setVehicleProperties(vehiclePreview)
     SetPedIntoVehicle(cache.ped, vehiclePreview, -1)
@@ -31,74 +34,67 @@ end
 
 
 local function proceedPayment(useBank, _shopIndex, _selected, _secondary)
-    if not useBank then
-        local count = _inv:Search('count', 'money')
-        if count < Config.VEHICLE_LIST[Config.vehicleShops[_shopIndex].VEHICLE_LIST][_selected].values[_secondary].VEHICLE_PRICE then
-            notification(Config.vehicleShops[_shopIndex]?.SHOP_LABEL, locale('not_enough_money', Config.VEHICLE_LIST[Config.vehicleShops[_shopIndex].VEHICLE_LIST][_selected].values[_secondary].VEHICLE_PRICE), 'error')
-            menu_caching.showMenu(_shopIndex)
-            return
-        end
-    end
+    local CFG_VEH_DATA = mapper.getVehicle(_shopIndex, _selected, _secondary)
+    local CFG_SHOP_DATA = mapper.getShop(_shopIndex)
 
 	local success = lib.callback.await('lsrp_vehicleShop:server:payment', false, useBank, _shopIndex, _selected, _secondary)
     if not success then
-        notification(Config.vehicleShops[_shopIndex]?.SHOP_LABEL or '[_ERROR_]', locale('transaction_error'), 'error')
+        notification(CFG_SHOP_DATA?.SHOP_LABEL, locale('transaction_error'), 'error')
         menu_caching.showMenu(_shopIndex)
         return
     end
 
     if success == 'license' then
-        notification(Config.vehicleShops[_shopIndex]?.SHOP_LABEL or '[_ERROR_]', locale('license'), 'error')
+        notification(CFG_SHOP_DATA?.SHOP_LABEL, locale('license'), 'error')
         menu_caching.showMenu(_shopIndex)
         return
     end
 
 	if success then
-		local vehicleAdded, vehiclePlate, spotTaken, netId = lib.callback.await('lsrp_vehicleShop:server:addVehicle', 500, lib.getVehicleProperties(vehiclePreview), #lib.getNearbyVehicles(Config.vehicleShops[_shopIndex].PURCHASED_VEHICLE_SPAWNS.xyz, 3, true), _shopIndex, _selected, _secondary, useBank)
+		local vehicleAdded, vehiclePlate, spotTaken, netId = lib.callback.await('lsrp_vehicleShop:server:addVehicle', 500, lib.getVehicleProperties(vehiclePreview), #lib.getNearbyVehicles(CFG_SHOP_DATA.PURCHASED_VEHICLE_SPAWNS.xyz, 3, true), _shopIndex, _selected, _secondary, useBank)
         if vehicleAdded then
-            local data = Config.VEHICLE_LIST[Config.vehicleShops[_shopIndex].VEHICLE_LIST][_selected].values[_secondary]
+            local data = CFG_VEH_DATA
             utils.fadeOut(500)
             if vehiclePreview then
                 vehiclePreview = utils.deleteLocalVehicle(vehiclePreview)
             end
-			PlaySoundFrontend(-1, 'Pre_Screen_Stinger', 'DLC_HEISTS_FAILED_SCREEN_SOUNDS', 0)
-            notification(Config.vehicleShops[_shopIndex]?.SHOP_LABEL, locale('success_bought', Config.VEHICLE_LIST[Config.vehicleShops[_shopIndex].VEHICLE_LIST][_selected].values[_secondary].label, vehiclePlate), 'success')
+
+            utils.playSound('PEYOTE_COMPLETED', 'HUD_AWARDS')
+            notification(CFG_SHOP_DATA?.SHOP_LABEL, locale('success_bought', CFG_VEH_DATA.label, vehiclePlate), 'success')
 			Wait(1000)
             utils.teleportPlayerToLastPos()
             SetEntityVisible(cache.ped, true)
             utils.fadeIn(1000)
-            notification(Config.vehicleShops[_shopIndex]?.SHOP_LABEL or '[_ERROR_]', not spotTaken and locale('vehicle_pick_up', data.label, vehiclePlate) or locale('added_to_garage', data.label, vehiclePlate), 'success')
+            notification(CFG_SHOP_DATA?.SHOP_LABEL, not spotTaken and locale('vehicle_pick_up', data.label, vehiclePlate) or locale('added_to_garage', data.label, vehiclePlate), 'success')
             npc.deleteFromVeh(NetToVeh(netId))
             return
 		end
 
-        notification(Config.vehicleShops[_shopIndex]?.SHOP_LABEL or '[_ERROR_]', locale('error_while_saving'), 'error')
+        notification(CFG_SHOP_DATA?.SHOP_LABEL, locale('error_while_saving'), 'error')
 	end
 end
 
 local function openVehicleSubmenu(_shopIndex, _selected, _scrollIndex)
-    local subMenu = {_shopIndex, _selected, _scrollIndex}
-    local vData = Config.VEHICLE_LIST[Config.vehicleShops[subMenu[1]].VEHICLE_LIST][subMenu[2]].values[subMenu[3]]
-    local vClass = GetVehicleClass(vehiclePreview)
-    local options = {}
+    local CFG_VEH_DATA = mapper.getVehicle(_shopIndex, _selected, _scrollIndex)
 
+    local options = {}
     if ESX.PlayerData.job.grade_name == 'boss' then
         options[#options+1] = {close = false, icon = 'warehouse', label = locale('buy_for_society'), description = locale('buy_for_soc_desc'), checked = false, menuArg = 'society'}
     end
 
     options[#options+1] = {
         label = locale('payment'),
-        icon = 'credit-card',
+        icon = 'fa-solid fa-money-check-dollar',
         menuArg = 'payment',
         values = {
             {
                 label = locale('cash'), 
-                description = locale('pay_in_cash', vData.VEHICLE_PRICE),
+                description = locale('pay_in_cash', CFG_VEH_DATA.VEHICLE_PRICE),
                 method = 'cash'
             }, 
             {
                 label = locale('bank'), 
-                description = locale('pay_in_bank', vData.VEHICLE_PRICE),
+                description = locale('pay_in_bank', CFG_VEH_DATA.VEHICLE_PRICE),
                 method = 'bank'
             }
         },
@@ -106,7 +102,7 @@ local function openVehicleSubmenu(_shopIndex, _selected, _scrollIndex)
     
     lib.registerMenu({
         id = 'lsrp_vehicleshop:submenu1',
-        title = vData.label,
+        title = CFG_VEH_DATA.label,
         position = Config.menuPosition == 'right' and 'top-right' or 'top-left',
         onClose = function(keyPressed)
             if lib.isTextUIOpen() then lib.hideTextUI() end
@@ -118,7 +114,7 @@ local function openVehicleSubmenu(_shopIndex, _selected, _scrollIndex)
         if not selected then return end
         if options[selected].menuArg == 'payment' then
             if (lib.alertDialog({
-                header = Config.VEHICLE_LIST[Config.vehicleShops[_shopIndex].VEHICLE_LIST][_selected].values[_scrollIndex].label,
+                header = Config.vehicleShops[_shopIndex].SHOP_LABEL,
                 content = locale('confirm_purchase',Config.VEHICLE_LIST[Config.vehicleShops[_shopIndex].VEHICLE_LIST][_selected].values[_scrollIndex].label, utils.groupDigs(Config.VEHICLE_LIST[Config.vehicleShops[_shopIndex].VEHICLE_LIST][_selected].values[_scrollIndex].VEHICLE_PRICE)),
                 centered = true,
                 cancel = true,
@@ -134,18 +130,19 @@ end
 local function openMenu(_shopIndex)
     utils.setLastCoords()
 
-    local CFG_VEHICLE_CLASS = Config.VEHICLE_LIST[Config.vehicleShops[_shopIndex].VEHICLE_LIST]
+    local CFG_SHOP_DATA = mapper.getShop(_shopIndex)
+    local CFG_VEHICLE_CLASS = Config.VEHICLE_LIST[CFG_SHOP_DATA.VEHICLE_LIST]
 
     lib.registerMenu({
         id = 'lsrp_vehicleshop:main',
-        title = Config.vehicleShops[_shopIndex].SHOP_LABEL,
+        title = CFG_SHOP_DATA.SHOP_LABEL,
         position = Config.menuPosition == 'right' and 'top-right' or 'top-left',
         onSideScroll = function(selected, scrollIndex, args)
             menu_caching.scrollCache(CFG_VEHICLE_CLASS[selected], scrollIndex)
             _spawnLocalVehicle(_shopIndex, selected, scrollIndex)
         end,
         onSelected = function(selected, scrollIndex, args)
-            menu_caching.selectCache(Config.vehicleShops[_shopIndex], selected)
+            menu_caching.selectCache(CFG_SHOP_DATA, selected)
             _spawnLocalVehicle(_shopIndex, selected, scrollIndex)
         end,
         onClose = function(keyPressed)
@@ -166,9 +163,7 @@ local function openMenu(_shopIndex)
         end
 
         local vehInfo = menuOptions.getVehicleInfo(vehiclePreview, CFG_VEHICLE_CLASS[selected].values[scrollIndex])
-        if vehInfo then
-            lib.showTextUI(vehInfo.text, vehInfo.options)
-        end
+        if vehInfo then lib.showTextUI(vehInfo.text, vehInfo.options) end
 
         openVehicleSubmenu(_shopIndex, selected, scrollIndex)
     end)
@@ -176,7 +171,7 @@ local function openMenu(_shopIndex)
     utils.fadeOut(500)
 
     SetEntityVisible(cache.ped, false)
-    SetEntityCoords(cache.ped, Config.vehicleShops[_shopIndex].PREVIEW_COORDS)
+    SetEntityCoords(cache.ped, CFG_SHOP_DATA.PREVIEW_COORDS)
     Wait(500)
     utils.fadeIn(1000)
     menu_caching.showMenu(_shopIndex)
@@ -184,7 +179,7 @@ local function openMenu(_shopIndex)
         Wait(100)
     end
     
-    notification(Config.vehicleShops[_shopIndex]?.SHOP_LABEL or '[_ERROR_]', locale('tip'), 'tip')
+    notification(CFG_SHOP_DATA?.SHOP_LABEL, locale('tip'), 'tip')
 end
 
 local function onEnter(point)
@@ -245,19 +240,16 @@ local function mainThread()
                     goto continue
                 end
 
-                if not shopData.SHOWCASE_VEHICLES then
-                    goto skip_showcase
-                end
 
-                for i=1, #shopData.SHOWCASE_VEHICLES do
-                    local showcase_vehicle = shopData.SHOWCASE_VEHICLES[i]
-                    if not IsModelInCdimage(showcase_vehicle.SHOWCASE_VEHICLE_MODEL) then return end
-                    local modelLoaded = lib.requestModel(showcase_vehicle.SHOWCASE_VEHICLE_MODEL, 1000)
-                    if not modelLoaded then return end
-                    showcase_vehicle.handle = create_showcase_vehicle(showcase_vehicle, i)
+                if shopData.SHOWCASE_VEHICLES and next(shopData.SHOWCASE_VEHICLES) then
+                    for i=1, #shopData.SHOWCASE_VEHICLES do
+                        local showcase_vehicle = shopData.SHOWCASE_VEHICLES[i]
+                        if not IsModelInCdimage(showcase_vehicle.SHOWCASE_VEHICLE_MODEL) then return end
+                        local modelLoaded = lib.requestModel(showcase_vehicle.SHOWCASE_VEHICLE_MODEL, 1000)
+                        if not modelLoaded then return end
+                        showcase_vehicle.handle = create_showcase_vehicle(showcase_vehicle, i)
+                    end
                 end
-
-                :: skip_showcase ::
 
                 shopData.NPC_DATA.npc = npc.create(shopData.NPC_DATA.model, shopData.NPC_DATA.position)
 
@@ -308,7 +300,7 @@ local function onShutDown()
             shopData.NPC_DATA.npc = nil
         end
 
-        if shopData.SHOWCASE_VEHICLES then
+        if shopData.SHOWCASE_VEHICLES and next(shopData.SHOWCASE_VEHICLES) then
             for i=1, #shopData.SHOWCASE_VEHICLES do
                 if shopData.SHOWCASE_VEHICLES[i].handle then
                     CreateThread(function()
