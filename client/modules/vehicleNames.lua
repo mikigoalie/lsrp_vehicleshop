@@ -1,4 +1,4 @@
-local utils = require('client.modules.utils')
+local dprint = require('shared.modules.dprint')
 local classes = require('client.modules.classes')
 local function generate()
     local generated = 0
@@ -18,9 +18,12 @@ local function generate()
                         vehData.label = ('%s %s'):format(vehData.label:sub(1, -2), lastChar)
                     end
                 end
+
+
+                vehData.label = vehData.label:upper()  -- Recommend keeping it like this
             end
         end
     end
 
-    utils.dprint(('%s'):format(generated > 0 and ("Generated labels for %s vehicles"):format(generated) or "All vehicles have label assigned"))
+    dprint(('%s'):format(generated > 0 and ("Generated labels for %s vehicles"):format(generated) or "All vehicles have label assigned"))
 end CreateThread(generate)
