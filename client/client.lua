@@ -239,9 +239,6 @@ local function createPoint(data)
 end
 
 local function mainThread()
-
-    local blip = AddBlipForArea(vec3(-51.8026, -1109.4855, 26.6703), 100.0, 100.0)
-    SetRadiusBlipEdge(blip, true)
     for _, shopData in pairs(Config.vehicleShops) do
         shopData.BLIP_DATA.blip = blipModule.createBlip(shopData)
     end
