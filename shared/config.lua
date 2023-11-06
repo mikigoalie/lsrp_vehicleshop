@@ -2,11 +2,12 @@ Config = {}
 
 --[[ Main section ]]--
 Config.debug = true
-Config.useFrontEndSounds = true -- Whether you want usage of sound fx
-Config.cacheIndexes = true      -- Menu select indexes will save upon closing menu
-Config.menuPosition = 'right'   -- OX Menu pos
-Config.textDistance = 1.0       -- Text UI distance
-Config.notifDuration = 10000    -- Default notif duration
+Config.vehicleTable = "owned_vehicles"
+Config.useFrontEndSounds = true         -- Whether you want usage of sound fx
+Config.cacheIndexes = true              -- Menu select indexes will save upon closing menu
+Config.menuPosition = 'right'           -- OX Menu pos
+Config.textDistance = 1.0               -- Text UI distance
+Config.notifDuration = 10000            -- Default notif duration
 Config.oxTarget = false
 Config.logging = 'https://discord.com/api/webhooks/1168648895203639306/7HgonEmJVPWhPpmwjef869ajO6dH5eYQWG3PhbFo8on3o223w1aNlie7JzdPlJkT5xv5' -- oxlogger or 'YOUR_WEBHOOK'
 

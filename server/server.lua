@@ -13,6 +13,23 @@ local function initializedThread()
         return
     end
 
+
+    result = MySQL.query.await(('SHOW COLUMNS FROM `%s`'):format(Config.vehicleTable, {indent=true}))
+    local nameField = false
+
+    for i = 1, #result do
+        if result[i].Field == 'name' then
+            nameField = true
+        end
+    end
+
+    if not nameField then
+        dprint(('Inserting `nameField` in `%s`'):format(Config.vehicleTable))
+        MySQL.query(('ALTER TABLE `%s` ADD COLUMN `name` VARCHAR(40) DEFAULT `Unknown`'):format(Config.vehicleTable))
+    end
+
+
+
     print('$$\\      $$$$$$\\ $$$$$$$\\ $$$$$$$\\ ')
     print('$$ |    $$  __$$\\$$  __$$\\$$  __$$\\ ')
     print('$$ |    $$ /  \\__$$ |  $$ $$ |  $$ |')

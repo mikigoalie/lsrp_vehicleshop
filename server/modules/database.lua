@@ -11,7 +11,7 @@ local db = {}
 ---@param {string} data.vehicleName - A name of the vehicle.
 
 db.addVehicle = function(data)
-    return MySQL.insert.await('INSERT INTO owned_vehicles (`owner`, `plate`, `vehicle`, `stored`, `type`) VALUES (?, ?, ?, ?, ?)', {data.identifier, data.plate, data.properties, not hasFreeCoords, data.vehicleType})
+    return MySQL.insert.await('INSERT INTO owned_vehicles (`owner`, `plate`, `vehicle`, `stored`, `type`, `name`) VALUES (?, ?, ?, ?, ?, ?)', {data.identifier, data.plate, data.properties, not hasFreeCoords, data.vehicleType, data.vehicleName})
 end
 
 db.select = function(query, params)
