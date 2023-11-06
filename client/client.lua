@@ -33,46 +33,50 @@ local function _spawnLocalVehicle(_shopIndex, _selected, _scrollIndex)
 end
 
 
+lib.callback.register('lsrp_vehicleshop:server:proceed', function(shopIndex)
+    if not vehiclePreview or not cache.vehicle then return false end
+    local spawnCoords = false
+    local spawns = Config.vehicleShops[shopIndex].PURCHASED_VEHICLE_SPAWNS
+    if type(spawns) == "table" then
+        for i=1, #spawns do
+            if #lib.getNearbyVehicles(spawns[i].xyz, 2, true) == 0 then
+                spawnCoords = spawns[i]
+                break
+            end
+        end
+    else
+        spawnCoords = #lib.getNearbyVehicles(spawns.xyz, 2, true) == 0 and spawns
+    end
 
-local function proceedPayment(useBank, _shopIndex, _selected, _secondary)
+    return {
+        vehicleProperties = lib.getVehicleProperties(vehiclePreview),
+        vehicleSpawnCoords = spawnCoords
+    }
+end)
+
+
+local function proceedPayment(paymentMethod, _shopIndex, _selected, _secondary)
     local CFG_VEH_DATA = mapper.getVehicle(_shopIndex, _selected, _secondary)
     local CFG_SHOP_DATA = mapper.getShop(_shopIndex)
+    
+    local success, spawned, vehiclePlate = lib.callback.await('lsrp_vehicleShop:server:payment', false, paymentMethod, _shopIndex, _selected, _secondary)
+    if success then
+        utils.fadeOut(100)
+        if vehiclePreview then
+            vehiclePreview = utils.deleteLocalVehicle(vehiclePreview)
+        end
 
-	local success = lib.callback.await('lsrp_vehicleShop:server:payment', false, useBank, _shopIndex, _selected, _secondary)
-    if not success then
+        utils.playSound('PEYOTE_COMPLETED', 'HUD_AWARDS')
+        notification(CFG_SHOP_DATA?.SHOP_LABEL, locale('success_bought', CFG_VEH_DATA.label, vehiclePlate), 'success')
+        Wait(1000)
+        utils.teleportPlayerToLastPos()
+        SetEntityVisible(cache.ped, true)
+        utils.fadeIn(1000)
+        notification(CFG_SHOP_DATA?.SHOP_LABEL, spawned and locale('vehicle_pick_up', CFG_VEH_DATA.label, vehiclePlate) or locale('added_to_garage', CFG_VEH_DATA.label, vehiclePlate), 'success')
+    else
         notification(CFG_SHOP_DATA?.SHOP_LABEL, locale('transaction_error'), 'error')
         menu_caching.showMenu(_shopIndex)
-        return
     end
-
-    if success == 'license' then
-        notification(CFG_SHOP_DATA?.SHOP_LABEL, locale('license'), 'error')
-        menu_caching.showMenu(_shopIndex)
-        return
-    end
-
-	if success then
-		local vehicleAdded, vehiclePlate, spotTaken, netId = lib.callback.await('lsrp_vehicleShop:server:addVehicle', 500, lib.getVehicleProperties(vehiclePreview), #lib.getNearbyVehicles(CFG_SHOP_DATA.PURCHASED_VEHICLE_SPAWNS.xyz, 3, true), _shopIndex, _selected, _secondary, useBank)
-        if vehicleAdded then
-            local data = CFG_VEH_DATA
-            utils.fadeOut(500)
-            if vehiclePreview then
-                vehiclePreview = utils.deleteLocalVehicle(vehiclePreview)
-            end
-
-            utils.playSound('PEYOTE_COMPLETED', 'HUD_AWARDS')
-            notification(CFG_SHOP_DATA?.SHOP_LABEL, locale('success_bought', CFG_VEH_DATA.label, vehiclePlate), 'success')
-			Wait(1000)
-            utils.teleportPlayerToLastPos()
-            SetEntityVisible(cache.ped, true)
-            utils.fadeIn(1000)
-            notification(CFG_SHOP_DATA?.SHOP_LABEL, not spotTaken and locale('vehicle_pick_up', data.label, vehiclePlate) or locale('added_to_garage', data.label, vehiclePlate), 'success')
-            npc.deleteFromVeh(NetToVeh(netId))
-            return
-		end
-
-        notification(CFG_SHOP_DATA?.SHOP_LABEL, locale('error_while_saving'), 'error')
-	end
 end
 
 local function openVehicleSubmenu(_shopIndex, _selected, _scrollIndex)
@@ -121,7 +125,7 @@ local function openVehicleSubmenu(_shopIndex, _selected, _scrollIndex)
                 cancel = true,
                 labels = {confirm = locale('confirm'), cancel = locale('cancel')}
             })) == 'confirm' then
-                proceedPayment(options[selected].values[scrollIndex].method == 'bank', _shopIndex, _selected, _scrollIndex)
+                proceedPayment(options[selected].values[scrollIndex].method, _shopIndex, _selected, _scrollIndex)
             else menu_caching.showMenu(_shopIndex) end return
         end
     end)
