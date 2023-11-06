@@ -18,7 +18,7 @@ Config.vehicleShops = {
         MENU_ICON = 'fa-solid fa-car',
         SHOP_COORDS = vec3(-32.7748, -1095.4304, 27.2744), 
         PREVIEW_COORDS = vec4(-47.6072, -1092.1250, 26.7543, 90.0), 
-        PURCHASED_VEHICLE_SPAWNS = vec4(-23.6204, -1094.3016, 27.0452, 339.1980),
+        PURCHASED_VEHICLE_SPAWNS = {vec4(-10.0278, -1095.0568, 27.0321, 178.7414), vec4(-14.3705, -1108.2189, 26.9248, 158.5954)},
         VEHICLE_LIST = 'vehicles',
         BLIP_DATA = {color = 5, sprite = 810, scale = 0.8},
         NPC_DATA = {model = joaat('IG_Avon'), position = vec4(-30.7224, -1096.5004, 26.2744, 68.4467)},

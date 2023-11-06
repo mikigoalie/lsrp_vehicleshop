@@ -22,7 +22,7 @@ Config.VEHICLE_LIST = {
             {label = 'Zion', VEHICLE_MODEL = joaat('zion'), VEHICLE_PRICE = 82000},
             {label = 'Zion Cabrio', VEHICLE_MODEL = joaat('zion2'), VEHICLE_PRICE = 82000},
             {label = 'Sentinel XS', VEHICLE_MODEL = joaat('sentinel'), VEHICLE_PRICE = 77000},
-            {label = 'Sentinel ', VEHICLE_MODEL = joaat('sentinel2'), VEHICLE_PRICE = 80000},
+            {label = 'Sentinel', VEHICLE_MODEL = joaat('sentinel2'), VEHICLE_PRICE = 80000},
             {label = 'Windsor', VEHICLE_MODEL = joaat('windsor'), VEHICLE_PRICE = 95000},
             {label = 'Windsor Drop', VEHICLE_MODEL = joaat('windsor2'), VEHICLE_PRICE = 95000},
             {label = 'Felon', VEHICLE_MODEL = joaat('felon'), VEHICLE_PRICE = 83000},

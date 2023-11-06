@@ -3,6 +3,8 @@ local plate = require('server.modules.plate')
 local functions = require('server.modules.functions')
 local framework = require('server.bridge.framework')
 local dprint = require('shared.modules.dprint')
+local spawnVehicle = require('server.modules.spawnVehicle')
+local hooks = require('server.bridge.hooks')
 
 local function initializedThread()
     if GetCurrentResourceName() ~= 'lsrp_vehicleshop' then
@@ -22,77 +24,66 @@ local function initializedThread()
     print('^2LSRP Vehicleshop initialized^0')
 end MySQL.ready(initializedThread)
 
-lib.callback.register('lsrp_vehicleShop:server:payment', function(source, useBank, _shopIndex, _selected, _secondary)
-    if not _shopIndex or not _selected or not _secondary then
-        return false
-    end
+local function addVehicleToPlayer(source, vehicle, shopIndex, selectIndex, paymentMethod)
 
+    local clientData = lib.callback.await('lsrp_vehicleshop:server:proceed', source, shopIndex)
+    if not clientData.vehicleProperties or clientData.vehicleProperties.model ~= vehicle.VEHICLE_MODEL then return false end
 
-    local vehicleData = Config.VEHICLE_LIST[Config.vehicleShops[_shopIndex].VEHICLE_LIST][_selected].values[_secondary]
-    local VEHICLE_PRICE =vehicleData.VEHICLE_PRICE
-
-    if not tonumber(VEHICLE_PRICE) or VEHICLE_PRICE < 1000 then return false end
-
-    if Config.vehicleShops[_shopIndex].license then
-        local gotLicense = framework.checkLicense(source, Config.vehicleShops[_shopIndex].license)
-        if not gotLicense then
-            return 'license'
-        end
-    end
-
-
-    if not useBank then
-        return framework.paymentCASH(source, VEHICLE_PRICE)
-    end
-
-    local bankMoney = framework.getBankBalance(source)
-    if bankMoney < VEHICLE_PRICE then
-        return false
-    end
-
-    return framework.paymentBANK(source, vehicleData)
-end)
-
-
-
-
-
-
-lib.callback.register('lsrp_vehicleShop:server:addVehicle', function(source, vehProperties, vehicleSpot, _shopIndex, _selected, _secondary, useBank)
-    local player = framework.getPlayer(source)
-    if not player then return false end
-
-    local _vehProps = vehProperties
-    local data = Config.VEHICLE_LIST[Config.vehicleShops[_shopIndex].VEHICLE_LIST][_selected].values[_secondary]
-
-    if _vehProps.model ~= data.VEHICLE_MODEL then
-        return false
-    end
-
-    if plate.plateTaken(_vehProps.plate) then
-        _vehProps.plate = plate.getPlate()
+    if plate.plateTaken(clientData.vehicleProperties.plate) then
+        clientData.vehicleProperties.plate = plate.getPlate()
     end
 
     local playerIdentifier = framework.getPlayerIdentifier(source)
     if not playerIdentifier then return false end
 
-    local success = MySQL.insert.await('INSERT INTO owned_vehicles (`owner`, `plate`, `vehicle`, `stored`, `type`, `name`) VALUES (?, ?, ?, ?, ?, ?)', {playerIdentifier, _vehProps.plate, json.encode(_vehProps), vehicleSpot ~= 0, Config.VEHICLE_LIST[Config.vehicleShops[_shopIndex].VEHICLE_LIST][_selected].dbData, data.label})
-    if vehicleSpot == 0 then
-        ESX.OneSync.SpawnVehicle(data.VEHICLE_MODEL, Config.vehicleShops[_shopIndex].PURCHASED_VEHICLE_SPAWNS.xyz, Config.vehicleShops[_shopIndex].PURCHASED_VEHICLE_SPAWNS.w, _vehProps, function(NetworkId)
-            Wait(100)
-            local Vehicle = NetworkGetEntityFromNetworkId(NetworkId)
-            if DoesEntityExist(Vehicle) then
-                SetVehicleDoorsLocked(Vehicle, 1)
-                local _vehicleState = Entity(Vehicle).state
-                _vehicleState:set('owner', playerIdentifier:sub(1, 10), true)
-            end
-        end)
+    local success = db.addVehicle({
+        identifier = playerIdentifier,
+        plate = clientData.vehicleProperties.plate,
+        properties = json.encode(clientData.vehicleProperties),
+        hasFreeCoords = clientData.vehicleSpawnCoords and true,
+        vehicleType = Config.VEHICLE_LIST[Config.vehicleShops[shopIndex].VEHICLE_LIST][selectIndex].dbData,
+        vehicleName = vehicle.label
+    })
+
+    if not success then return false end
+
+    if type(clientData.vehicleSpawnCoords) == "vector3" or type(clientData.vehicleSpawnCoords) == "vector4" then
+        spawnVehicle(vehicle.VEHICLE_MODEL, clientData.vehicleSpawnCoords, clientData.vehicleProperties, playerIdentifier)
     end
 
-    functions.log({['Vehicle model'] = data.label, ['Price'] = data.VEHICLE_PRICE, ['Plate'] = _vehProps.plate, ['Buyer'] = GetPlayerName(source), ['Player identifier'] = playerIdentifier, ['Payment type'] = useBank and locale('bank') or locale('cash')})
+    hooks.onVehiclePurchase(vehicle.label, clientData.vehicleProperties.plate)
+    dprint(('Purchase made! Player %s has purchased %s for %s'):format(source, vehicle.VEHICLE_MODEL, vehicle.VEHICLE_PRICE))
+    functions.log({['Vehicle model'] = vehicle.label, ['Price'] = vehicle.VEHICLE_PRICE, ['Plate'] = clientData.vehicleProperties.plate, ['Buyer'] = GetPlayerName(source), ['Player identifier'] = playerIdentifier, ['Payment type'] = paymentMethod, ['Spawned around shop'] = clientData.vehicleSpawnCoords and true})
     
-    return success, _vehProps.plate, vehicleSpot ~= 0, Vehicle
-    
+    return true, clientData.vehicleSpawnCoords and true, clientData.vehicleProperties.plate
+end
+
+lib.callback.register('lsrp_vehicleShop:server:payment', function(source, paymentMethod, shopIndex, selectIndex, scrollIndex)
+    if not shopIndex or not selectIndex or not scrollIndex then
+        dprint(('Player with ID: %s has called a callback without args. Possible cheating'):format(source))
+        return false
+    end
+
+    local vehicleData = Config.VEHICLE_LIST[Config.vehicleShops[shopIndex].VEHICLE_LIST][selectIndex].values[scrollIndex]
+    local VEHICLE_PRICE = vehicleData.VEHICLE_PRICE
+
+    if type(VEHICLE_PRICE) ~= 'number' or VEHICLE_PRICE < 1000 then
+        dprint(('An error has occured while getting vehicle price for vehicle %s'):format(vehicleData?.VEHICLE_MODEL))
+        return false 
+    end
+
+    if Config.vehicleShops[shopIndex].license then
+        if not framework.checkLicense(source, Config.vehicleShops[shopIndex].license) then
+            return false
+        end
+    end
+
+    if not framework.payment(source, paymentMethod, VEHICLE_PRICE) then
+        return false
+    end
+
+
+    return addVehicleToPlayer(source, vehicleData, shopIndex, selectIndex, paymentMethod)
 end)
 
 
