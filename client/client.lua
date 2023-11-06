@@ -108,11 +108,11 @@ local function openVehicleSubmenu(_shopIndex, _selected, _scrollIndex)
         },
     }
 
-    options[#options+1] = {
+--[[     options[#options+1] = {
         label = locale('testdrive'),
         icon = 'fa-solid fa-gauge-high',
         menuArg = 'testdrive',        
-    }
+    } ]]
     
     lib.registerMenu({
         id = 'lsrp_vehicleshop:submenu1',
@@ -275,13 +275,11 @@ local function mainThread()
             
             if #(playerCoords - shopData.SHOP_COORDS) < 150.0 then
                 if shopData.point or shopData?.NPC_DATA?.npc then
-                    print('Point exists, skipping')
                     goto continue
                 end
 
                 if shopData.SHOWCASE_VEHICLES and next(shopData.SHOWCASE_VEHICLES) then
                     for i=1, #shopData.SHOWCASE_VEHICLES do
-                        print('trying to create vehicle')
                         local showcase_vehicle = shopData.SHOWCASE_VEHICLES[i]
                         if IsModelInCdimage(showcase_vehicle.SHOWCASE_VEHICLE_MODEL) then
                             local modelLoaded = lib.requestModel(showcase_vehicle.SHOWCASE_VEHICLE_MODEL, 1000)
