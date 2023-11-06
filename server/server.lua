@@ -25,7 +25,7 @@ local function initializedThread()
 
     if not nameField then
         dprint(('Inserting `nameField` in `%s`'):format(Config.vehicleTable))
-        MySQL.query(('ALTER TABLE `%s` ADD COLUMN `name` VARCHAR(40) DEFAULT `Unknown`'):format(Config.vehicleTable))
+        MySQL.query(('ALTER TABLE `%s` ADD COLUMN `name` VARCHAR(40) DEFAULT \'Unknown\''):format(Config.vehicleTable))
     end
 
 
