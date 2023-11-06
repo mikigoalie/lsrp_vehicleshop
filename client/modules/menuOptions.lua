@@ -30,7 +30,11 @@ local function getStorage(class)
 end
 
 menuOptions.getVehicleInfo = function(vehicle, vdata)
-    if not cache.vehicle or not vehicle then return false end
+    local playerSeated = lib.waitFor(function() return cache.vehicle end)
+
+    if not playerSeated or not vehicle then return false end
+    if lib.isTextUIOpen() then lib.hideTextUI() end
+
     local options = {}
     local MAX_SPEED = GetVehicleEstimatedMaxSpeed(vehicle)
     local SEATS = GetVehicleModelNumberOfSeats(GetEntityModel(vehicle))
@@ -39,11 +43,18 @@ menuOptions.getVehicleInfo = function(vehicle, vdata)
     local WEIGHT = GetVehicleHandlingFloat(vehicle, 'CHandlingData', 'fMass')
 
     return { 
-        text = ('**Model**: *%s*  \n**Plate**: *%s*  \n**Estimated speed**: *%s km/h*  \n**Number of seats**: *%s*  \n**Weight**:  *%s kg*  \n**Price**: *%s %s*'):format(
+        text = ('**%s**: *%s*  \n**%s**: *%s*  \n**%s**: *%s km/h*  \n**%s**: *%s*  \n**%s**:  *%s kg*  \n**%s**: *%s %s*'):format(
+            locale('model'),
             vdata.label, 
-            PLATE, math.floor(MAX_SPEED*km), 
+            locale('plate'),
+            PLATE, 
+            locale('est_speed'),
+            math.floor(MAX_SPEED*km), 
+            locale('seats'),
             SEATS,
+            locale('weight'),
             WEIGHT,
+            locale('price'),
             utils.groupDigs(vdata.VEHICLE_PRICE), 
             locale('currencySymbol')
         ), 

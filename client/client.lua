@@ -9,6 +9,7 @@ local generateVehNames = require('client.modules.vehicleNames')
 local mapper = require('shared.modules.configMapper')
 local dprint = require('shared.modules.dprint')
 local framework = require('client.bridge.framework')
+local testdrive = require('client.modules.testdrive')
 
 local vehiclePreview = nil
 local playerLoaded = false
@@ -27,6 +28,8 @@ local function _spawnLocalVehicle(_shopIndex, _selected, _scrollIndex)
     loadingVehicle = true
     if not utils.loadModel(_model) then  loadingVehicle = false return end
     vehiclePreview = CreateVehicle(_model, _data.PREVIEW_COORDS.x, _data.PREVIEW_COORDS.y, _data.PREVIEW_COORDS.z, _data.PREVIEW_COORDS.w, false,false)
+    vehiclePreview = lib.waitFor(function()  return vehiclePreview end)
+
     utils.setVehicleProperties(vehiclePreview)
     SetPedIntoVehicle(cache.ped, vehiclePreview, -1)
     loadingVehicle = false
@@ -104,6 +107,12 @@ local function openVehicleSubmenu(_shopIndex, _selected, _scrollIndex)
             }
         },
     }
+
+    options[#options+1] = {
+        label = locale('testdrive'),
+        icon = 'fa-solid fa-gauge-high',
+        menuArg = 'testdrive',        
+    }
     
     lib.registerMenu({
         id = 'lsrp_vehicleshop:submenu1',
@@ -127,6 +136,17 @@ local function openVehicleSubmenu(_shopIndex, _selected, _scrollIndex)
             })) == 'confirm' then
                 proceedPayment(options[selected].values[scrollIndex].method, _shopIndex, _selected, _scrollIndex)
             else menu_caching.showMenu(_shopIndex) end return
+        elseif options[selected].menuArg == 'testdrive' then
+            local testOptions = lib.inputDialog('Test drive conditions', {
+                {type = 'select', label = 'Místo', options = {{value = 3, label = "Letiště"}}},
+                {type = 'select', label = 'Doba', options = {{value = 60, label = "Minuta | 6000$"}, {value = 600, label = "Deset minut | 6000$"}}},
+            })
+
+            if not testOptions then lib.showMenu('lsrp_vehicleshop:submenu1') return end
+
+            if not testdrive.initiate(_shopIndex, _selected, _scrollIndex, testOptions) then lib.showMenu('lsrp_vehicleshop:submenu1') return end
+
+            testdrive.startTestDrive()
         end
     end)
     lib.showMenu('lsrp_vehicleshop:submenu1')
@@ -147,12 +167,19 @@ local function openMenu(_shopIndex)
         onSideScroll = function(selected, scrollIndex, args)
             menu_caching.scrollCache(CFG_VEHICLE_CLASS[selected], scrollIndex)
             _spawnLocalVehicle(_shopIndex, selected, scrollIndex)
+
+            local vehInfo = menuOptions.getVehicleInfo(vehiclePreview, CFG_VEHICLE_CLASS[selected].values[scrollIndex])
+            if vehInfo then lib.showTextUI(vehInfo.text, vehInfo.options) end
         end,
         onSelected = function(selected, scrollIndex, args)
             menu_caching.selectCache(CFG_SHOP_DATA, selected)
             _spawnLocalVehicle(_shopIndex, selected, scrollIndex)
+
+            local vehInfo = menuOptions.getVehicleInfo(vehiclePreview, CFG_VEHICLE_CLASS[selected].values[scrollIndex])
+            if vehInfo then lib.showTextUI(vehInfo.text, vehInfo.options) end
         end,
         onClose = function(keyPressed)
+            if lib.isTextUIOpen() then lib.hideTextUI() end
             utils.fadeOut(500)
             vehiclePreview = utils.deleteLocalVehicle(vehiclePreview)
             utils.teleportPlayerToLastPos()
@@ -168,10 +195,6 @@ local function openMenu(_shopIndex)
             SetPedIntoVehicle(cache.ped, vehiclePreview, -1)
             Wait(10)
         end
-
-        local vehInfo = menuOptions.getVehicleInfo(vehiclePreview, CFG_VEHICLE_CLASS[selected].values[scrollIndex])
-        if vehInfo then lib.showTextUI(vehInfo.text, vehInfo.options) end
-
         openVehicleSubmenu(_shopIndex, selected, scrollIndex)
     end)
 
@@ -216,6 +239,9 @@ local function createPoint(data)
 end
 
 local function mainThread()
+
+    local blip = AddBlipForArea(vec3(-51.8026, -1109.4855, 26.6703), 100.0, 100.0)
+    SetRadiusBlipEdge(blip, true)
     for _, shopData in pairs(Config.vehicleShops) do
         shopData.BLIP_DATA.blip = blipModule.createBlip(shopData)
     end
@@ -249,16 +275,19 @@ local function mainThread()
             
             if #(playerCoords - shopData.SHOP_COORDS) < 150.0 then
                 if shopData.point or shopData?.NPC_DATA?.npc then
+                    print('Point exists, skipping')
                     goto continue
                 end
 
                 if shopData.SHOWCASE_VEHICLES and next(shopData.SHOWCASE_VEHICLES) then
                     for i=1, #shopData.SHOWCASE_VEHICLES do
+                        print('trying to create vehicle')
                         local showcase_vehicle = shopData.SHOWCASE_VEHICLES[i]
-                        if not IsModelInCdimage(showcase_vehicle.SHOWCASE_VEHICLE_MODEL) then return end
-                        local modelLoaded = lib.requestModel(showcase_vehicle.SHOWCASE_VEHICLE_MODEL, 1000)
-                        if not modelLoaded then return end
-                        showcase_vehicle.handle = create_showcase_vehicle(showcase_vehicle, i)
+                        if IsModelInCdimage(showcase_vehicle.SHOWCASE_VEHICLE_MODEL) then
+                            local modelLoaded = lib.requestModel(showcase_vehicle.SHOWCASE_VEHICLE_MODEL, 1000)
+                            if not modelLoaded then return end
+                            showcase_vehicle.handle = create_showcase_vehicle(showcase_vehicle, i)
+                        end
                     end
                 end
 

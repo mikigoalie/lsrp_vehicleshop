@@ -10,6 +10,11 @@ Config.textDistance = 1.0               -- Text UI distance
 Config.notifDuration = 10000            -- Default notif duration
 Config.oxTarget = false
 Config.logging = 'https://discord.com/api/webhooks/1168648895203639306/7HgonEmJVPWhPpmwjef869ajO6dH5eYQWG3PhbFo8on3o223w1aNlie7JzdPlJkT5xv5' -- oxlogger or 'YOUR_WEBHOOK'
+Config.testdrive = {
+    ['Airport'] = {
+        
+    }
+}
 
 
 --[[ Vehicle shops configuration ]]--

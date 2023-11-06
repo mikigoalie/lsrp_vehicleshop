@@ -2,8 +2,10 @@
     "model": "Model",
     "plate": "SPZ",
     "est_speed": "Odhadovaná rychlost",
-    "seats": "sedadla",
+    "seats": "Počet míst",
     "price": "Cena",
+    "weight": "Váha",
+
     "currencySymbol": "$",
     "priceTag": "${price}: %s ${currencySymbol}",
     "open_shop": "Otevřít obchod **%s**",
@@ -25,7 +27,9 @@
     "success_bought": "Úspěšně jste si zakoupili vozidlo **%s** s SPZ: %s",
     "vehicle_info": "Informace o vozidle",
     "payment": "Platba",
-
+    "testdrive": "Testovací jízda",
+    "minute": "Minuta jízdy",
+    "ten_minutes": "Deset minut jízdy",
 
     "license": "Toto vozidlo Vám nemůžeme prodat..",
     "colorize_vehicle": "Vyberte si barvu",
@@ -38,8 +42,6 @@
     "noglove": "Toto vozidlo nemá přihrádku",
     "buy_for_soc": "Koupit na frakci",
     "buy_for_soc_desc": "Koupit pro sebe",
-
-
 
 
     "compacts": "Kompaktní vozidla",
@@ -65,7 +67,9 @@
     "commercial": "Komerční",
     "open wheel": "Formule",
 
-
     "skis": "Skůtry",
     "cruise_boats": "Výletní čluny"
+
+
+
 }

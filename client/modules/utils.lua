@@ -48,6 +48,7 @@ end
 local function loadModel(model)
     if not IsModelInCdimage(model) then return false end
     local modelLoaded = lib.requestModel(model)
+    SetModelAsNoLongerNeeded(model)
     if not modelLoaded then return false end
     return true
 end
