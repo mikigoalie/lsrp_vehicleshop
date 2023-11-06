@@ -285,8 +285,9 @@ local function mainThread()
                         local showcase_vehicle = shopData.SHOWCASE_VEHICLES[i]
                         if IsModelInCdimage(showcase_vehicle.SHOWCASE_VEHICLE_MODEL) then
                             local modelLoaded = lib.requestModel(showcase_vehicle.SHOWCASE_VEHICLE_MODEL, 1000)
-                            if not modelLoaded then return end
-                            showcase_vehicle.handle = create_showcase_vehicle(showcase_vehicle, i)
+                            if modelLoaded then
+                                showcase_vehicle.handle = create_showcase_vehicle(showcase_vehicle, i)
+                            end
                         end
                     end
                 end
