@@ -9,11 +9,6 @@ Config.textDistance = 1.0       -- Text UI distance
 Config.notifDuration = 10000    -- Default notif duration
 Config.oxTarget = false
 Config.logging = 'https://discord.com/api/webhooks/1168648895203639306/7HgonEmJVPWhPpmwjef869ajO6dH5eYQWG3PhbFo8on3o223w1aNlie7JzdPlJkT5xv5' -- oxlogger or 'YOUR_WEBHOOK'
-Config.vehicleColors = {    -- Allow custom RGB Colors for primary and secondary? Currently without any money take
-    primary = true,
-    secondary = true
-}
-
 
 
 --[[ Vehicle shops configuration ]]--
@@ -28,26 +23,9 @@ Config.vehicleShops = {
         BLIP_DATA = {color = 5, sprite = 810, scale = 0.8},
         NPC_DATA = {model = joaat('IG_Avon'), position = vec4(-30.7224, -1096.5004, 26.2744, 68.4467)},
         SHOWCASE_VEHICLES = {
-            {SHOWCASE_VEHICLE_MODEL = joaat('oracxsle'), coords = vec4(-49.8157, -1083.6610, 26.23, 199.9693), color = {255, 128, 32}},
-            {SHOWCASE_VEHICLE_MODEL = joaat('cypherct'), coords = vec4(-54.7802, -1096.9150, 26.1577, 297.9555)},
-            {SHOWCASE_VEHICLE_MODEL = joaat('argento'), coords = vec4(-42.3705, -1101.3069, 26.5423, 350.3064), color = {'chameleon', 175}},
-            {SHOWCASE_VEHICLE_MODEL = joaat('sunrise1'), coords = vec4(-36.6870, -1093.3662, 26.2255, 153.1380), color = {'chameleon', 161}},
-        }
-    },
-
-    {
-        SHOP_LABEL = 'Premium Deluxe Motorsport',
-        MENU_ICON = 'fa-solid fa-car',
-        SHOP_COORDS = vec3(-1256.6936, -367.5191, 36.9074), 
-        PREVIEW_COORDS = vec4(-1255.8885, -354.4863, 36.6496, 69.0134), 
-        PURCHASED_VEHICLE_SPAWNS = vec4(-1234.7506, -352.5141, 36.9216, 348.5213),
-        VEHICLE_LIST = 'vehicles',
-        BLIP_DATA = {color = 5, sprite = 810, scale = 0.8},
-        NPC_DATA = {model = joaat('IG_Avon'), position = vec4(-1257.3900, -369.1119, 35.9076, 326.1691)},
-        SHOWCASE_VEHICLES = {
-            {SHOWCASE_VEHICLE_MODEL = joaat('nero2'), coords = vec4(-1270.0524, -358.4790, 36.4939, 248.8551), color = {255, 128, 32}},
-            {SHOWCASE_VEHICLE_MODEL = joaat('tempesta'), coords = vec4(-1269.1307, -364.7496, 36.4321, 296.3736), color = {255, 0, 32}},
-            {SHOWCASE_VEHICLE_MODEL = joaat('t20'), coords = vec4(-1265.2803, -354.4835, 36.4840, 209.07534), color = {255, 0, 32}},
+            {SHOWCASE_VEHICLE_MODEL = joaat('cypher'), coords = vec4(-53.7864, -1117.4386, 26.0897, 158.8436), color = {255, 128, 32}},
+            {SHOWCASE_VEHICLE_MODEL = joaat('tenf'), coords = vec4(-60.7932, -1118.0017, 26.0886, 160.2876)},
+            {SHOWCASE_VEHICLE_MODEL = joaat('drafter'), coords = vec4(-50.3500, -1117.2529, 26.0890, 156.5067), color = {'chameleon', 175}},
         }
     },
     {

@@ -8,6 +8,7 @@ local menuOptions = require('client.modules.menuOptions')
 local generateVehNames = require('client.modules.vehicleNames')
 local mapper = require('shared.modules.configMapper')
 local dprint = require('shared.modules.dprint')
+local framework = require('client.bridge.framework')
 
 local vehiclePreview = nil
 local playerLoaded = false
@@ -78,7 +79,7 @@ local function openVehicleSubmenu(_shopIndex, _selected, _scrollIndex)
     local CFG_VEH_DATA = mapper.getVehicle(_shopIndex, _selected, _scrollIndex)
 
     local options = {}
-    if ESX.PlayerData.job.grade_name == 'boss' then
+    if framework.societyAcces == 'boss' then
         options[#options+1] = {close = false, icon = 'warehouse', label = locale('buy_for_society'), description = locale('buy_for_soc_desc'), checked = false, menuArg = 'society'}
     end
 
@@ -128,8 +129,10 @@ local function openVehicleSubmenu(_shopIndex, _selected, _scrollIndex)
 end
 
 local function openMenu(_shopIndex)
-    utils.setLastCoords()
+    if utils.isPlayerInShopMenu() then return end
 
+    if lib.isTextUIOpen() then lib.hideTextUI() end
+    utils.setLastCoords()
     local CFG_SHOP_DATA = mapper.getShop(_shopIndex)
     local CFG_VEHICLE_CLASS = Config.VEHICLE_LIST[CFG_SHOP_DATA.VEHICLE_LIST]
 
@@ -147,9 +150,9 @@ local function openMenu(_shopIndex)
         end,
         onClose = function(keyPressed)
             utils.fadeOut(500)
-            utils.teleportPlayerToLastPos()
             vehiclePreview = utils.deleteLocalVehicle(vehiclePreview)
-            Wait(500)
+            utils.teleportPlayerToLastPos()
+            Wait(300)
             SetEntityVisible(cache.ped, true)
             utils.fadeIn(1000)
             Wait(500)
@@ -183,17 +186,22 @@ local function openMenu(_shopIndex)
 end
 
 local function onEnter(point)
+    while (not IsScreenFadedIn() or IsScreenFadedOut()) do
+        Wait(50)
+    end
+
     lib.showTextUI(locale('open_shop', point.shop.label or '_ERROR'), {icon = point.shop.icon or 'car', position = "top-center"})
 end
 
 local function onExit(point)
-    lib.hideTextUI()
+	if lib.isTextUIOpen() then lib.hideTextUI() end
 end
 
 local function nearby(point)
+    if not point.isClosest then return end
+
     if point.currentDistance <= 2 then
         if IsControlJustPressed(0, 38) and not utils.isPlayerInShopMenu() then
-            lib.hideTextUI()
             openMenu(point.shop.index)
         end
     end
@@ -239,7 +247,6 @@ local function mainThread()
                 if shopData.point or shopData?.NPC_DATA?.npc then
                     goto continue
                 end
-
 
                 if shopData.SHOWCASE_VEHICLES and next(shopData.SHOWCASE_VEHICLES) then
                     for i=1, #shopData.SHOWCASE_VEHICLES do
