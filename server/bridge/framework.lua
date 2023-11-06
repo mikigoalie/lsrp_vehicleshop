@@ -1,29 +1,25 @@
 local db = require('server.modules.database')
 local framework = {}
-framework.getPlayer = function(playerId)
-    return ESX.GetPlayerFromId(playerId)
-end
+
+local plate = require('server.modules.plate')
+lib.callback.register('lsrp_vehicleShop:server:generateplate', function(source)
+    return plate.getPlate()
+end)
+
 
 framework.getPlayerIdentifier = function(playerId)
     local xPlayer = ESX.GetPlayerFromId(playerId) 
     return xPlayer and xPlayer.identifier or false
 end
 
-framework.getCash = function()
-
-end
-
-framework.getBankBalance = function(source)
-    return exports.pefcl:getDefaultAccountBalance(source).data
-end
-
-framework.paymentBANK = function(source, vehicleData)
-    local result = exports.pefcl:removeBankBalance(source, { amount = vehicleData.VEHICLE_PRICE, message = ('Zakoupení vozidla %s'):format(vehicleData.label) })
-    return result.status == 'ok' or false
-end
-
-framework.paymentCASH = function(source, VEHICLE_PRICE)
-    return exports.ox_inventory:RemoveItem(source, 'money', VEHICLE_PRICE)
+framework.payment = function(source, method, price)
+    if method and method == "bank" then
+        if not exports.pefcl:getDefaultAccountBalance(source).data > price then return false end
+        local result = exports.pefcl:removeBankBalance(source, { amount = vehicleData.VEHICLE_PRICE, message = ('Zakoupení vozidla %s'):format(vehicleData.label) })
+        return result.status == 'ok' or false
+    else
+        return exports.ox_inventory:RemoveItem(source, 'money', price)
+    end
 end
 
 framework.checkLicense = function(source, license)
@@ -33,6 +29,13 @@ framework.checkLicense = function(source, license)
     if not playerIdentifier then return false end
 
     local result = db.select('SELECT `type` FROM `user_licenses` WHERE `owner` = ? AND `type` = ?', { playerIdentifier, license })
+    if not result then
+        lib.notify(source, {
+            title = Config.vehicleShops[shopIndex].SHOP_LABEL,
+            description = locale('license'),
+            type = 'warning'
+        })
+    end
     return next(result) and true or false
 end
 
