@@ -101,6 +101,6 @@ return {
     loadModel = loadModel,
     setVehicleProperties = setVehicleProperties,
     isPlayerInShopMenu = isPlayerInShopMenu,
-    playSound = playSound
+    playSound = playSound,
     hideTextUi = hideTextUi
 }
