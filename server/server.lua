@@ -69,7 +69,7 @@ local function addVehicleToPlayer(source, vehicle, shopIndex, selectIndex, payme
     end
 
     hooks.onVehiclePurchase(vehicle.label, clientData.vehicleProperties.plate)
-    dprint(('Purchase made! Player %s has purchased %s for %s'):format(source, vehicle.VEHICLE_MODEL, vehicle.VEHICLE_PRICE))
+    dprint(('Purchase made! Player %s has purchased %s for %s'):format(source, vehicle.VEHICLE_MODEL, vehicle.VEHICLE_MODEL))
     functions.log({['Vehicle model'] = vehicle.label, ['Price'] = vehicle.VEHICLE_PRICE, ['Plate'] = clientData.vehicleProperties.plate, ['Buyer'] = GetPlayerName(source), ['Player identifier'] = playerIdentifier, ['Payment type'] = paymentMethod, ['Spawned around shop'] = clientData.vehicleSpawnCoords and true})
     
     return true, clientData.vehicleSpawnCoords and true, clientData.vehicleProperties.plate

@@ -62,12 +62,12 @@ Config.vehicleShops = {
         SHOP_LABEL = 'Port of LS',
         MENU_ICON = 'fa-solid fa-anchor',
         SHOP_COORDS = vec3(-332.4889, -2792.6875, 5.0002), 
-        PREVIEW_COORDS = vec4(-315.2095, -2811.3174, -1.4862, 236.3378), 
-        PURCHASED_VEHICLE_SPAWNS = vec4(-295.9564, -2763.7126, -1.0662, 73.7579),
+        PREVIEW_COORDS = vec4(-343.6553, -2812.8828, 0.0450, 322.7136), 
+        PURCHASED_VEHICLE_SPAWNS = vec4(-292.9921, -2762.8484, 0.5279, 45.8222),
         VEHICLE_LIST = 'boats',
         BLIP_DATA = {color = 5, sprite = 755, scale = 0.8},
         NPC_DATA = {model = joaat('A_M_M_HasJew_01'), position = vec4(-331.8239, -2792.7698, 4.0002, 90.6536)},
-        license = 'boat',
+        --license = 'boat',
         SHOWCASE_VEHICLES = {
             {SHOWCASE_VEHICLE_MODEL = joaat('tug'), coords = vec4(-306.5132, -2806.1492, -0.9544, 283.8846), color = {255, 128, 32}},
         }

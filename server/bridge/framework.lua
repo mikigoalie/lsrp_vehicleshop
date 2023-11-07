@@ -13,22 +13,22 @@ framework.getPlayerIdentifier = function(playerId)
 end
 
 framework.payment = function(source, method, price)
-    if Config.payment == "esx" then
-        local xPlayer = ESX.GetPlayerFromId(source)
-        if not xPlayer then return false end
-        local bank = xPlayer.getAccount("bank")?.money
-        if not bank or not tonumber(bank) == "number" then return false end
-        if bank < price then return false end
-        xPlayer.removeAccountMoney('bank', price)
-        return true
-    elseif Config.payment == "pefcl" then
-        if method and method == "bank" then
+    if method and method == "bank" then
+        if Config.payment == "esx" then
+            local xPlayer = ESX.GetPlayerFromId(source)
+            if not xPlayer then return false end
+            local bank = xPlayer.getAccount("bank")?.money
+            if not bank or not tonumber(bank) == "number" then return false end
+            if bank < price then return false end
+            xPlayer.removeAccountMoney('bank', price)
+            return true
+        else
             if not exports.pefcl:getDefaultAccountBalance(source).data > price then return false end
             local result = exports.pefcl:removeBankBalance(source, { amount = vehicleData.VEHICLE_PRICE, message = ('Zakoupení vozidla %s'):format(vehicleData.label) })
             return result.status == 'ok' or false
-        else
-            return exports.ox_inventory:RemoveItem(source, 'money', price)
         end
+    else
+        return exports.ox_inventory:RemoveItem(source, 'money', price)
     end
 end
 
