@@ -1,6 +1,8 @@
 Config = {}
 
 --[[ Main section ]]--
+---@type string "esx" | "pefcl" | server/bridge/framework.lua
+Config.payment = "esx"                  -- 
 Config.debug = true
 Config.vehicleTable = "owned_vehicles"
 Config.useFrontEndSounds = true         -- Whether you want usage of sound fx
@@ -10,14 +12,35 @@ Config.textDistance = 1.0               -- Text UI distance
 Config.notifDuration = 10000            -- Default notif duration
 Config.oxTarget = false
 Config.logging = 'https://discord.com/api/webhooks/1168648895203639306/7HgonEmJVPWhPpmwjef869ajO6dH5eYQWG3PhbFo8on3o223w1aNlie7JzdPlJkT5xv5' -- oxlogger or 'YOUR_WEBHOOK'
-Config.testdrive = {
-    ['Airport'] = {
-        
-    }
-}
 
 
 --[[ Vehicle shops configuration ]]--
+
+---@type Array
+---@type array.SHOP_LABEL string
+---@type array.MENU_ICON Font Awesome Icons
+---@type array.SHOP_COORDS Vector3 - Center of the shop
+---@type array.PREVIEW_COORDS Vector4 - Shop entrance / exit
+---@type array.PURCHASED_VEHICLE_SPAWNS Vector4 | Array - Coords for purchased vehicle to spawn
+---@type array.VEHICLE_LIST string - specified vehicleList.lua array
+
+---@type array.BLIP_DATA array - specified vehicleList.lua array
+---@type array.BLIP_DATA.color number - color
+---@type array.BLIP_DATA.sprite number - sprite
+---@type array.BLIP_DATA.scale number - scale
+
+---@type array.NPC_DATA.model joaat(model) - NPC Model
+---@type array.NPC_DATA.position Vector4
+
+---@type array.SHOWCASE_VEHICLES Array
+---@type array.SHOWCASE_VEHICLES.SHOWCASE_VEHICLE_MODEL joaat(model)
+---@type array.SHOWCASE_VEHICLES.coords Vector4
+---@type array.SHOWCASE_VEHICLES.color?[1] Red | 'chameleon'
+---@type array.SHOWCASE_VEHICLES.color?[2] Green | chameleon color number
+---@type array.SHOWCASE_VEHICLES.color?[3] Blue
+
+---@type array.SHOWCASE_VEHICLES.license? string - License to own when purchasing
+
 Config.vehicleShops = {
     {
         SHOP_LABEL = 'Deluxe Motorsport',
@@ -29,9 +52,10 @@ Config.vehicleShops = {
         BLIP_DATA = {color = 5, sprite = 810, scale = 0.8},
         NPC_DATA = {model = joaat('IG_Avon'), position = vec4(-30.7224, -1096.5004, 26.2744, 68.4467)},
         SHOWCASE_VEHICLES = {
-            {SHOWCASE_VEHICLE_MODEL = joaat('cypher'), coords = vec4(-53.7864, -1117.4386, 26.0897, 158.8436), color = {255, 128, 32}},
-            {SHOWCASE_VEHICLE_MODEL = joaat('tenf'), coords = vec4(-60.7932, -1118.0017, 26.0886, 160.2876)},
-            {SHOWCASE_VEHICLE_MODEL = joaat('drafter'), coords = vec4(-50.3500, -1117.2529, 26.0890, 156.5067), color = {'chameleon', 175}},
+            {SHOWCASE_VEHICLE_MODEL = joaat('adder'), coords = vec4(-42.3511, -1101.5804, 26.7262, 356.4317), color = {255, 128, 32}},
+            {SHOWCASE_VEHICLE_MODEL = joaat('zentorno'), coords = vec4(-37.0104, -1092.8065, 26.8779, 177.5585)},
+            {SHOWCASE_VEHICLE_MODEL = joaat('blista'), coords = vec4(-49.9161, -1083.1125, 27.1248, 201.3450)},
+            {SHOWCASE_VEHICLE_MODEL = joaat('exemplar'), coords = vec4(-54.6393, -1096.9513, 27.1250, 303.4448)},
         }
     },
     {
@@ -43,7 +67,10 @@ Config.vehicleShops = {
         VEHICLE_LIST = 'boats',
         BLIP_DATA = {color = 5, sprite = 755, scale = 0.8},
         NPC_DATA = {model = joaat('A_M_M_HasJew_01'), position = vec4(-331.8239, -2792.7698, 4.0002, 90.6536)},
-        license = 'flight'
+        license = 'boat',
+        SHOWCASE_VEHICLES = {
+            {SHOWCASE_VEHICLE_MODEL = joaat('tug'), coords = vec4(-306.5132, -2806.1492, -0.9544, 283.8846), color = {255, 128, 32}},
+        }
     },
     {
         SHOP_LABEL = 'Elitás Travel',
