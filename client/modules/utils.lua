@@ -86,6 +86,9 @@ local function playSound(name, bank)
     PlaySoundFrontend(9, name, bank, 0)
 end
 
+local function hideTextUi()
+    if lib.isTextUIOpen() then lib.hideTextUI() end
+end
 
 return {
     hex2rgb = hex2rgb,
@@ -99,4 +102,5 @@ return {
     setVehicleProperties = setVehicleProperties,
     isPlayerInShopMenu = isPlayerInShopMenu,
     playSound = playSound
+    hideTextUi = hideTextUi
 }

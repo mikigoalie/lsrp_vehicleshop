@@ -119,12 +119,12 @@ local function openVehicleSubmenu(_shopIndex, _selected, _scrollIndex)
         title = CFG_VEH_DATA.label,
         position = Config.menuPosition == 'right' and 'top-right' or 'top-left',
         onClose = function(keyPressed)
-            if lib.isTextUIOpen() then lib.hideTextUI() end
+            utils.hideTextUi()
             menu_caching.showMenu(_shopIndex)
         end,
         options = options
     }, function(selected, scrollIndex, args)
-        if lib.isTextUIOpen() then lib.hideTextUI() end
+        utils.hideTextUi()
         if not selected then return end
         if options[selected].menuArg == 'payment' then
             if (lib.alertDialog({
@@ -155,7 +155,7 @@ end
 local function openMenu(_shopIndex)
     if utils.isPlayerInShopMenu() then return end
 
-    if lib.isTextUIOpen() then lib.hideTextUI() end
+    utils.hideTextUi()
     utils.setLastCoords()
     local CFG_SHOP_DATA = mapper.getShop(_shopIndex)
     local CFG_VEHICLE_CLASS = Config.VEHICLE_LIST[CFG_SHOP_DATA.VEHICLE_LIST]
@@ -179,7 +179,7 @@ local function openMenu(_shopIndex)
             if vehInfo then lib.showTextUI(vehInfo.text, vehInfo.options) end
         end,
         onClose = function(keyPressed)
-            if lib.isTextUIOpen() then lib.hideTextUI() end
+            utils.hideTextUi()
             utils.fadeOut(500)
             vehiclePreview = utils.deleteLocalVehicle(vehiclePreview)
             utils.teleportPlayerToLastPos()
@@ -221,7 +221,7 @@ local function onEnter(point)
 end
 
 local function onExit(point)
-	if lib.isTextUIOpen() then lib.hideTextUI() end
+	utils.hideTextUi()
 end
 
 local function nearby(point)
