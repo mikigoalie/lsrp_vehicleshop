@@ -13,7 +13,7 @@ framework.getPlayerIdentifier = function(playerId)
 end
 
 framework.payment = function(source, method, price)
-    if Config.payment = "esx" then
+    if Config.payment == "esx" then
         local xPlayer = ESX.GetPlayerFromId(source)
         if not xPlayer then return false end
         local bank = xPlayer.getAccount("bank")?.money
