@@ -30,7 +30,7 @@ local function getStorage(class)
 end
 
 menuOptions.getVehicleInfo = function(vehicle, vdata)
-    local playerSeated = lib.waitFor(function() return cache.vehicle end)
+    local playerSeated = lib.waitFor(function() if cache.vehicle then return true end  end, _, 2000)
 
     if not playerSeated or not vehicle then return false end
     if lib.isTextUIOpen() then lib.hideTextUI() end
